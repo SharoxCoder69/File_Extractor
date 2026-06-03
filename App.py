@@ -62,7 +62,7 @@ st.markdown(
 
     /* FOOTER (FOUNDERS BOX) */
     .founder-box {
-        position: rotation;
+        position: fixed;
         bottom: 10px;
         left: 50%;
         transform: translateX(-50%);
