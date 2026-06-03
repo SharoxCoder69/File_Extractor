@@ -10,9 +10,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- LOADING ANIMATION ----------------
+# ---------------- LOADING ----------------
 with st.spinner("Loading TOTALLYWIRELESSGROUP Dashboard... 🚀"):
-    time.sleep(1.2)
+    time.sleep(5.0)
 
 # ---------------- BACKGROUND WATERMARK ----------------
 st.markdown(
@@ -39,31 +39,7 @@ st.markdown(
         100% {transform: translate(-50%, -50%) rotate(-20deg) scale(1);}
     }
 
-    /* Founder Box */
-    .founder-box {
-        background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
-        padding: 12px;
-        border-radius: 12px;
-        text-align: center;
-        font-size: 18px;
-        font-weight: bold;
-        color: white;
-        margin-bottom: 20px;
-        animation: slideDown 1.2s ease-in-out, glow 2s infinite;
-    }
-
-    @keyframes slideDown {
-        from {transform: translateY(-40px); opacity: 0;}
-        to {transform: translateY(0); opacity: 1;}
-    }
-
-    @keyframes glow {
-        0% {box-shadow: 0 0 5px #00ffcc;}
-        50% {box-shadow: 0 0 20px #00ffcc;}
-        100% {box-shadow: 0 0 5px #00ffcc;}
-    }
-
-    /* Title */
+    /* TITLE */
     .main-title {
         text-align: center;
         font-size: 40px;
@@ -84,20 +60,37 @@ st.markdown(
         margin-bottom: 25px;
     }
 
+    /* FOOTER (FOUNDERS BOX) */
+    .founder-box {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.6);
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #00ffcc;
+        font-weight: 500;
+        box-shadow: 0 0 8px rgba(0,255,200,0.3);
+        animation: glow 2s infinite;
+        z-index: 999;
+    }
+
+    @keyframes glow {
+        0% {box-shadow: 0 0 5px #00ffcc;}
+        50% {box-shadow: 0 0 15px #00ffcc;}
+        100% {box-shadow: 0 0 5px #00ffcc;}
+    }
+
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# ---------------- WATERMARK TEXT ----------------
+# ---------------- WATERMARK ----------------
 st.markdown(
     "<div class='watermark'>TOTALLYWIRELESSGROUP</div>",
-    unsafe_allow_html=True
-)
-
-# ---------------- FOUNDER BOX ----------------
-st.markdown(
-    "<div class='founder-box'>👑 Founder: Sharox Javaid</div>",
     unsafe_allow_html=True
 )
 
@@ -140,7 +133,7 @@ if st.button("🚀 Process Data"):
     extracted = {}
     current_store = None
 
-    # ---------------- EXTRACT DATA ----------------
+    # ---------------- EXTRACT ----------------
     for line in lines:
 
         if any(w.lower() in line.lower() for w in ignore_words):
@@ -153,7 +146,7 @@ if st.button("🚀 Process Data"):
 
         current_store = line
 
-    # ---------------- MATCH WITH MASTER ----------------
+    # ---------------- MATCH ----------------
     results = []
 
     for store in master_stores:
@@ -199,3 +192,9 @@ if st.button("🚀 Process Data"):
         "store_times.csv",
         "text/csv"
     )
+
+# ---------------- FOOTER ----------------
+st.markdown(
+    "<div class='founder-box'>👑 Founder: Sharox Javaid</div>",
+    unsafe_allow_html=True
+)
