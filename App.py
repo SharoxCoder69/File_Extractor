@@ -11,15 +11,35 @@ st.set_page_config(
 )
 
 # ---------------- LOADING ANIMATION ----------------
-with st.spinner("Loading Dashboard... 🚀"):
+with st.spinner("Loading TOTALLYWIRELESSGROUP Dashboard... 🚀"):
     time.sleep(1.2)
 
-# ---------------- CUSTOM CSS ----------------
+# ---------------- BACKGROUND WATERMARK ----------------
 st.markdown(
     """
     <style>
 
-    /* Animated Founder Box */
+    .watermark {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-20deg);
+        font-size: 80px;
+        font-weight: 900;
+        color: rgba(0, 255, 200, 0.06);
+        z-index: -1;
+        white-space: nowrap;
+        animation: floatText 6s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    @keyframes floatText {
+        0% {transform: translate(-50%, -50%) rotate(-20deg) scale(1);}
+        50% {transform: translate(-50%, -52%) rotate(-20deg) scale(1.05);}
+        100% {transform: translate(-50%, -50%) rotate(-20deg) scale(1);}
+    }
+
+    /* Founder Box */
     .founder-box {
         background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
         padding: 12px;
@@ -69,6 +89,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# ---------------- WATERMARK TEXT ----------------
+st.markdown(
+    "<div class='watermark'>TOTALLYWIRELESSGROUP</div>",
+    unsafe_allow_html=True
+)
+
 # ---------------- FOUNDER BOX ----------------
 st.markdown(
     "<div class='founder-box'>👑 Founder: Sharox Javaid</div>",
@@ -114,7 +140,7 @@ if st.button("🚀 Process Data"):
     extracted = {}
     current_store = None
 
-    # ---------------- EXTRACT ----------------
+    # ---------------- EXTRACT DATA ----------------
     for line in lines:
 
         if any(w.lower() in line.lower() for w in ignore_words):
@@ -127,7 +153,7 @@ if st.button("🚀 Process Data"):
 
         current_store = line
 
-    # ---------------- MATCH ----------------
+    # ---------------- MATCH WITH MASTER ----------------
     results = []
 
     for store in master_stores:
