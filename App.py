@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- ANIMATION (LOADING) ----------------
+# ---------------- LOADING ANIMATION ----------------
 with st.spinner("Loading Dashboard... 🚀"):
     time.sleep(1.2)
 
@@ -18,13 +18,38 @@ with st.spinner("Loading Dashboard... 🚀"):
 st.markdown(
     """
     <style>
+
+    /* Animated Founder Box */
+    .founder-box {
+        background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 20px;
+        animation: slideDown 1.2s ease-in-out, glow 2s infinite;
+    }
+
+    @keyframes slideDown {
+        from {transform: translateY(-40px); opacity: 0;}
+        to {transform: translateY(0); opacity: 1;}
+    }
+
+    @keyframes glow {
+        0% {box-shadow: 0 0 5px #00ffcc;}
+        50% {box-shadow: 0 0 20px #00ffcc;}
+        100% {box-shadow: 0 0 5px #00ffcc;}
+    }
+
+    /* Title */
     .main-title {
         text-align: center;
-        font-size: 42px;
+        font-size: 40px;
         font-weight: bold;
         color: #4CAF50;
         animation: pulse 1.8s infinite;
-        margin-bottom: 10px;
     }
 
     @keyframes pulse {
@@ -36,24 +61,25 @@ st.markdown(
     .sub-title {
         text-align: center;
         color: gray;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
     }
 
-    .card {
-        background-color: #111;
-        padding: 15px;
-        border-radius: 10px;
-        color: white;
-        text-align: center;
-    }
     </style>
     """,
     unsafe_allow_html=True
 )
 
+# ---------------- FOUNDER BOX ----------------
+st.markdown(
+    "<div class='founder-box'>👑 Founder: Sharox Javaid</div>",
+    unsafe_allow_html=True
+)
+
 # ---------------- HEADER ----------------
 st.markdown("<div class='main-title'>📊 Store Time Dashboard</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-title'>Smart Store & Time Extractor System</div>", unsafe_allow_html=True)
+st.markdown("<div class='sub-title'>Smart Store & Time Extraction System</div>", unsafe_allow_html=True)
+
+st.markdown("---")
 
 # ---------------- INPUTS ----------------
 col1, col2 = st.columns(2)
@@ -68,7 +94,7 @@ with col2:
 if st.button("🚀 Process Data"):
 
     if not master_list or not raw_data:
-        st.warning("Please fill both Master List and Raw Data")
+        st.warning("Please fill both inputs")
         st.stop()
 
     master_stores = [s.strip() for s in master_list.splitlines() if s.strip()]
@@ -88,7 +114,7 @@ if st.button("🚀 Process Data"):
     extracted = {}
     current_store = None
 
-    # ---------------- EXTRACT DATA ----------------
+    # ---------------- EXTRACT ----------------
     for line in lines:
 
         if any(w.lower() in line.lower() for w in ignore_words):
@@ -101,7 +127,7 @@ if st.button("🚀 Process Data"):
 
         current_store = line
 
-    # ---------------- MATCH WITH MASTER ----------------
+    # ---------------- MATCH ----------------
     results = []
 
     for store in master_stores:
@@ -129,7 +155,6 @@ if st.button("🚀 Process Data"):
     missing = total - matched
 
     col1, col2, col3 = st.columns(3)
-
     col1.metric("📦 Total Stores", total)
     col2.metric("✅ Matched", matched)
     col3.metric("❌ Missing", missing)
