@@ -22,35 +22,106 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user = ""
 
-# ---------------- LOGIN ----------------
+# =========================================================
+# 🎨 LOGIN PAGE (MODERN CARD UI)
+# =========================================================
 def login_page():
-    st.markdown("## 🔐 Login Required")
+
+    st.markdown("""
+    <style>
+    .login-box {
+        width: 380px;
+        margin: auto;
+        margin-top: 100px;
+        padding: 30px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 0 40px rgba(0,0,0,0.6);
+        backdrop-filter: blur(10px);
+        text-align: center;
+    }
+
+    .login-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 10px;
+    }
+
+    .login-sub {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-bottom: 20px;
+    }
+
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="login-box">
+        <div class="login-title">🔐 Store Intelligence</div>
+        <div class="login-sub">Login to access dashboard</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
-    if st.button("Login"):
+    col1, col2 = st.columns(2)
+
+    with col1:
+        login_btn = st.button("🚀 Login")
+
+    with col2:
+        st.button("ℹ Info")
+
+    if login_btn:
         if username in USERS and USERS[username] == password:
             st.session_state.logged_in = True
             st.session_state.user = username
             st.rerun()
         else:
-            st.error("Invalid Credentials")
+            st.error("❌ Invalid Credentials")
 
     st.stop()
 
+# ---------------- SHOW LOGIN IF NOT LOGGED IN ----------------
 if not st.session_state.logged_in:
     login_page()
 
-# ---------------- LOGOUT ----------------
-st.sidebar.write(f"👤 Logged in as: {st.session_state.user}")
+# =========================================================
+# 🚪 LOGOUT (VISIBLE + CLEAN)
+# =========================================================
+st.sidebar.markdown(f"### 👤 {st.session_state.user}")
 
 if st.sidebar.button("🚪 Logout"):
     st.session_state.logged_in = False
     st.session_state.user = ""
     st.rerun()
 
-# ---------------- STYLE ----------------
+st.markdown(
+    f"""
+    <div style="
+        position: fixed;
+        top: 10px;
+        right: 20px;
+        background: rgba(255,255,255,0.05);
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        font-size: 13px;
+    ">
+        👤 Logged in as: <b>{st.session_state.user}</b>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# =========================================================
+# 🎨 MAIN UI
+# =========================================================
 st.markdown("""
 <style>
 
@@ -59,32 +130,12 @@ st.markdown("""
     color: #e5e7eb;
 }
 
-.header {
-    text-align: center;
-    padding: 20px;
-    border-radius: 18px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    margin-bottom: 20px;
-}
-
-.title {
-    font-size: 34px;
-    font-weight: 800;
-}
-
-.subtitle {
-    font-size: 13px;
-    color: #9ca3af;
-}
-
-/* 3D INPUT */
+/* INPUT */
 textarea {
     border-radius: 14px !important;
-    background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)) !important;
+    background: rgba(255,255,255,0.04) !important;
     color: white !important;
     border: 1px solid rgba(255,255,255,0.10) !important;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
 /* BUTTON */
@@ -105,33 +156,22 @@ textarea {
 """, unsafe_allow_html=True)
 
 # ---------------- HEADER ----------------
-st.markdown(f"""
-<div class="header">
-    <div class="title">📊 Store Intelligence Dashboard</div>
-    <div class="subtitle">Welcome {st.session_state.user}</div>
-</div>
-""", unsafe_allow_html=True)
+st.title("📊 Store Intelligence Dashboard")
+st.markdown(f"Welcome **{st.session_state.user}** 👋")
 
 st.markdown("---")
 
-# ---------------- MASTER LIST (OLD STYLE TEXTBOX) ----------------
-st.markdown("## 📌 Master Store List")
-
-master_list = st.text_area("Enter Master Stores (one per line)", height=200)
-
-# convert to list
-master_lines = [m.strip() for m in master_list.splitlines() if m.strip()]
-
-st.markdown("---")
-
-# ---------------- RAW DATA ----------------
+# ---------------- INPUTS ----------------
+master_list = st.text_area("📌 Master Store List", height=200)
 raw_data = st.text_area("📥 Raw Data", height=200)
+
+master_lines = [m.strip() for m in master_list.splitlines() if m.strip()]
 
 # ---------------- PROCESS ----------------
 if st.button("🚀 Generate Report"):
 
     if not master_lines or not raw_data:
-        st.warning("Please fill both Master List and Raw Data")
+        st.warning("Missing data")
         st.stop()
 
     progress = st.progress(0)
@@ -142,7 +182,6 @@ if st.button("🚀 Generate Report"):
     raw_lines = [r.strip() for r in raw_data.splitlines() if r.strip()]
 
     time_pattern = r'^\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)$'
-
     extracted = {}
     current = None
 
