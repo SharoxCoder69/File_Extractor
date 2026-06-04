@@ -202,7 +202,6 @@ def best_match(store_name, raw_dict):
 
 results = []
 
-for store_name, store_id in STORE_MAP.items():
 
     time_value = best_match(store_name, extracted)
 
