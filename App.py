@@ -39,12 +39,13 @@ st.markdown("""
     color: #9ca3af;
 }
 
-/* TEXTAREA */
+/* TEXT AREA FIX (IMPORTANT) */
 textarea {
     border-radius: 12px !important;
-    background: rgba(255,255,255,0.03) !important;
+    background: rgba(255,255,255,0.04) !important;
     color: white !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    min-height: 200px !important;
 }
 
 /* BUTTON */
@@ -62,14 +63,6 @@ textarea {
     box-shadow: 0 10px 25px rgba(37,99,235,0.25);
 }
 
-/* METRICS */
-[data-testid="stMetric"] {
-    background: rgba(255,255,255,0.04);
-    padding: 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.06);
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -81,6 +74,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+st.markdown("---")
+
 # ---------------- SEARCH ----------------
 c1, c2 = st.columns(2)
 
@@ -90,18 +85,18 @@ with c1:
 with c2:
     raw_search = st.text_input("🔍 Search Raw Data")
 
-st.markdown("---")
+st.markdown("## 📥 INPUT DATA")
 
-# ---------------- INPUT BOXES (FIXED SIDE BY SIDE) ----------------
-col1, col2 = st.columns(2)
+# ---------------- INPUT BOXES (FIXED GUARANTEED VISIBLE) ----------------
+col1, col2 = st.columns(2, gap="large")
 
 with col1:
     st.markdown("### 📌 Master Store List")
-    master_list = st.text_area("", height=250)
+    master_list = st.text_area("Enter master stores here", height=250)
 
 with col2:
     st.markdown("### 📥 Raw Data Logs")
-    raw_data = st.text_area("", height=250)
+    raw_data = st.text_area("Enter raw logs here", height=250)
 
 # ---------------- PROCESS ----------------
 if st.button("🚀 Generate Report"):
@@ -171,13 +166,12 @@ if st.button("🚀 Generate Report"):
     total = len(df)
     matched = len(df[df["Status"] == "✅ Found"])
     missing = total - matched
-    rate = int((matched / total) * 100) if total else 0
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("📦 Total", total)
     c2.metric("✅ Found", matched)
     c3.metric("❌ Missing", missing)
-    c4.metric("📊 Success Rate", f"{rate}%")
+    c4.metric("📊 Success Rate", f"{int((matched/total)*100)}%")
 
     st.markdown("---")
 
