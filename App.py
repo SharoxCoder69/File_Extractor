@@ -5,122 +5,145 @@ import time
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="Store Time Dashboard",
+    page_title="Store Intelligence Dashboard",
     page_icon="📊",
     layout="wide"
 )
 
-# ---------------- MODERN UI ----------------
+# ---------------- PREMIUM UI ----------------
 st.markdown("""
 <style>
 
 /* Background */
 .stApp {
-    background: linear-gradient(135deg, #0b1220, #0f172a);
+    background: radial-gradient(circle at top, #0b1220, #050814);
     color: #e5e7eb;
+}
+
+/* Top Header Card */
+.header {
+    background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(6,182,212,0.08));
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
 }
 
 /* Title */
 .title {
-    text-align: center;
-    font-size: 34px;
-    font-weight: 700;
+    font-size: 32px;
+    font-weight: 800;
     color: #e5e7eb;
-    margin-top: 10px;
 }
 
+/* Subtitle */
 .subtitle {
-    text-align: center;
-    color: #9ca3af;
     font-size: 13px;
-    margin-bottom: 15px;
+    color: #94a3b8;
+    margin-top: 5px;
 }
 
-/* Inputs */
+/* INPUT BOXES */
 textarea {
-    border-radius: 10px !important;
-    background: rgba(255,255,255,0.04) !important;
-    color: white !important;
+    border-radius: 12px !important;
+    background: rgba(255,255,255,0.03) !important;
     border: 1px solid rgba(255,255,255,0.08) !important;
+    color: white !important;
 }
 
-/* Button */
+/* BUTTON */
 .stButton > button {
     width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #2563eb, #06b6d4);
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    background: linear-gradient(135deg,#2563eb,#06b6d4);
     color: white;
-    font-weight: 600;
+    border: none;
     transition: 0.3s;
 }
 
 .stButton > button:hover {
-    transform: scale(1.03);
-    box-shadow: 0 10px 20px rgba(37,99,235,0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(37,99,235,0.25);
 }
 
-/* Metrics */
+/* METRICS CARDS */
 [data-testid="stMetric"] {
     background: rgba(255,255,255,0.04);
-    padding: 12px;
-    border-radius: 12px;
     border: 1px solid rgba(255,255,255,0.06);
+    padding: 16px;
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
 }
 
-/* Table */
+/* TABLE */
 [data-testid="stDataFrame"] {
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
+}
+
+/* SECTION BOX */
+.box {
+    background: rgba(255,255,255,0.03);
+    padding: 15px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.06);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HEADER ----------------
+# ---------------- HEADER CARD ----------------
 st.markdown("""
-<div class="title">Store Time Dashboard</div>
-<div class="subtitle">TOTALLYWIRELESSGROUP • Smart Extraction System</div>
+<div class="header">
+    <div class="title">📊 Store Intelligence Dashboard</div>
+    <div class="subtitle">TOTALLYWIRELESSGROUP • Advanced Analytics System</div>
+</div>
 """, unsafe_allow_html=True)
+
+# ---------------- STATS PLACEHOLDER ----------------
+st.markdown("### 📌 Quick Controls")
+
+colA, colB = st.columns(2)
+
+with colA:
+    master_search = st.text_input("🔍 Search Master List")
+
+with colB:
+    raw_search = st.text_input("🔍 Search Raw Data")
 
 st.markdown("---")
 
-# ---------------- SEARCH BOXES ----------------
-s1, s2 = st.columns(2)
-
-with s1:
-    master_search = st.text_input("🔍 Search Master List")
-
-with s2:
-    raw_search = st.text_input("🔍 Search Raw Data")
-
-# ---------------- INPUT BOXES (SMALL) ----------------
-col1, col2 = st.columns([1, 1])
+# ---------------- INPUTS ----------------
+col1, col2 = st.columns(2)
 
 with col1:
-    master_list = st.text_area("📌 Master Store List", height=180)
+    st.markdown("### 📌 Master Store List")
+    master_list = st.text_area("", height=220)
 
 with col2:
-    raw_data = st.text_area("📥 Raw Data", height=180)
+    st.markdown("### 📥 Raw Data Logs")
+    raw_data = st.text_area("", height=220)
 
 # ---------------- PROCESS ----------------
-if st.button("🚀 Process Data"):
+if st.button("🚀 Generate Report"):
 
     if not master_list or not raw_data:
         st.warning("Please fill both inputs")
         st.stop()
 
-    # Progress bar
+    # loading animation
     progress = st.progress(0)
     for i in range(100):
-        time.sleep(0.005)
+        time.sleep(0.003)
         progress.progress(i + 1)
 
-    # ---------------- CLEAN INPUT ----------------
+    # ---------------- CLEAN ----------------
     master_lines = [m.strip() for m in master_list.splitlines() if m.strip()]
     raw_lines = [r.strip() for r in raw_data.splitlines() if r.strip()]
 
-    # Search filter
     if master_search:
         master_lines = [m for m in master_lines if master_search.lower() in m.lower()]
 
@@ -146,7 +169,7 @@ if st.button("🚀 Process Data"):
 
         current_store = line
 
-    # ---------------- MATCHING ----------------
+    # ---------------- MATCH ----------------
     results = []
 
     for store in master_lines:
@@ -162,20 +185,23 @@ if st.button("🚀 Process Data"):
 
         results.append({
             "Store Name": store,
-            "Time": time_value if time_value else "❌ Missing"
+            "Status": "✅ Found" if time_value else "❌ Missing",
+            "Time": time_value if time_value else "-"
         })
 
     df = pd.DataFrame(results)
 
     # ---------------- STATS ----------------
     total = len(df)
-    matched = len(df[df["Time"] != "❌ Missing"])
+    matched = len(df[df["Status"] == "✅ Found"])
     missing = total - matched
+    rate = int((matched / total) * 100) if total else 0
 
-    c1, c2, c3 = st.columns(3)
-    c1.metric("📦 Total Stores", total)
-    c2.metric("✅ Matched", matched)
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("📦 Total", total)
+    c2.metric("✅ Found", matched)
     c3.metric("❌ Missing", missing)
+    c4.metric("📊 Success Rate", f"{rate}%")
 
     st.markdown("---")
 
@@ -186,8 +212,8 @@ if st.button("🚀 Process Data"):
     csv = df.to_csv(index=False).encode("utf-8")
 
     st.download_button(
-        "⬇ Download CSV",
+        "⬇ Download Report",
         csv,
-        "store_times.csv",
+        "store_report.csv",
         "text/csv"
     )
