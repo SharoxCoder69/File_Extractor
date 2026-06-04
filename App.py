@@ -9,38 +9,31 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- CSS STYLE ----------------
+# ---------------- SAFE CSS ----------------
 st.markdown(
     """
     <style>
 
-    /* Background */
     .stApp {
         background-color: #0f172a;
         color: white;
     }
 
-    /* Main title */
     h1 {
         text-align: center;
         color: #38bdf8;
-        font-weight: 800;
     }
 
-    /* Sub headings */
     h3 {
         color: #e2e8f0;
-        font-weight: 600;
     }
 
-    /* Text area */
+    /* Safe textarea styling */
     textarea {
-        background-color: #1e293b !important;
-        color: white !important;
         border-radius: 10px !important;
     }
 
-    /* Buttons */
+    /* Button styling */
     .stButton>button {
         background: linear-gradient(90deg, #0ea5e9, #3b82f6);
         color: white;
@@ -51,13 +44,7 @@ st.markdown(
     }
 
     .stButton>button:hover {
-        background: linear-gradient(90deg, #3b82f6, #0ea5e9);
         transform: scale(1.02);
-    }
-
-    /* Dataframe */
-    .dataframe {
-        background-color: white;
     }
 
     /* Footer */
@@ -75,7 +62,7 @@ st.markdown(
 
 # ---------------- LOGIN ----------------
 def login():
-    st.markdown("<h1>🔐 TWG SmartOps Login</h1>", unsafe_allow_html=True)
+    st.title("🔐 TWG SmartOps Login")
 
     user = st.text_input("Username")
     pwd = st.text_input("Password", type="password")
@@ -118,7 +105,6 @@ def match_store(text):
     best_score = 0
 
     for store in STORE_DATA:
-
         s = clean_text(store)
 
         if s in text or text in s:
@@ -248,6 +234,8 @@ if st.button("🚀 Run System"):
     st.text_area("Copy from here", df.to_csv(index=False), height=200)
 
 # ---------------- FOOTER ----------------
+st.markdown("---")
+
 st.markdown(
     """
     <div class='footer'>
