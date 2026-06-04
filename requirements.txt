@@ -1,0 +1,4 @@
+streamlit
+pandas
+rapidfuzz
+add requirements file fix dependency issue
