@@ -10,79 +10,68 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- MODERN CLEAN UI ----------------
+# ---------------- MODERN UI ----------------
 st.markdown("""
 <style>
 
 /* Background */
 .stApp {
-    background: linear-gradient(135deg, #0b1220, #111827);
+    background: linear-gradient(135deg, #0b1220, #0f172a);
     color: #e5e7eb;
 }
 
-/* MAIN TITLE (SOFT + PROFESSIONAL) */
-.main-title {
+/* Title */
+.title {
     text-align: center;
-    font-size: 36px;
+    font-size: 34px;
     font-weight: 700;
     color: #e5e7eb;
-    letter-spacing: 1px;
-    margin-bottom: 5px;
+    margin-top: 10px;
 }
 
-/* SUBTITLE */
-.sub-title {
+.subtitle {
     text-align: center;
     color: #9ca3af;
-    font-size: 14px;
-    margin-bottom: 25px;
+    font-size: 13px;
+    margin-bottom: 15px;
 }
 
-/* TEXT AREA */
+/* Inputs */
 textarea {
-    border-radius: 12px !important;
-    background: rgba(255,255,255,0.03) !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 10px !important;
+    background: rgba(255,255,255,0.04) !important;
     color: white !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
 }
 
-/* BUTTON (MODERN SOFT GRADIENT) */
+/* Button */
 .stButton > button {
     width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    border: none;
-    font-weight: 600;
+    padding: 12px;
+    border-radius: 10px;
     background: linear-gradient(135deg, #2563eb, #06b6d4);
     color: white;
+    font-weight: 600;
     transition: 0.3s;
 }
 
 .stButton > button:hover {
     transform: scale(1.03);
-    box-shadow: 0 10px 20px rgba(37,99,235,0.3);
+    box-shadow: 0 10px 20px rgba(37,99,235,0.25);
 }
 
-/* METRICS CARDS */
+/* Metrics */
 [data-testid="stMetric"] {
     background: rgba(255,255,255,0.04);
-    padding: 15px;
-    border-radius: 14px;
+    padding: 12px;
+    border-radius: 12px;
     border: 1px solid rgba(255,255,255,0.06);
 }
 
-/* TABLE */
+/* Table */
 [data-testid="stDataFrame"] {
-    border-radius: 12px;
+    border-radius: 10px;
     overflow: hidden;
-}
-
-/* FOOTER */
-.footer {
-    text-align: center;
-    font-size: 12px;
-    color: #6b7280;
-    margin-top: 20px;
 }
 
 </style>
@@ -90,48 +79,64 @@ textarea {
 
 # ---------------- HEADER ----------------
 st.markdown("""
-<div class="main-title">Store Time Dashboard</div>
-<div class="sub-title">TOTALLYWIRELESSGROUP • Smart Extraction System</div>
+<div class="title">Store Time Dashboard</div>
+<div class="subtitle">TOTALLYWIRELESSGROUP • Smart Extraction System</div>
 """, unsafe_allow_html=True)
 
 st.markdown("---")
 
-# ---------------- INPUTS ----------------
-col1, col2 = st.columns(2)
+# ---------------- SEARCH BOXES ----------------
+s1, s2 = st.columns(2)
+
+with s1:
+    master_search = st.text_input("🔍 Search Master List")
+
+with s2:
+    raw_search = st.text_input("🔍 Search Raw Data")
+
+# ---------------- INPUT BOXES (SMALL) ----------------
+col1, col2 = st.columns([1, 1])
 
 with col1:
-    master_list = st.text_area("📌 Master Store List", height=300)
+    master_list = st.text_area("📌 Master Store List", height=180)
 
 with col2:
-    raw_data = st.text_area("📥 Raw Data", height=300)
+    raw_data = st.text_area("📥 Raw Data", height=180)
 
-# ---------------- PROCESS BUTTON ----------------
+# ---------------- PROCESS ----------------
 if st.button("🚀 Process Data"):
 
     if not master_list or not raw_data:
-        st.warning("Please fill both fields")
+        st.warning("Please fill both inputs")
         st.stop()
 
-    # Progress animation
+    # Progress bar
     progress = st.progress(0)
     for i in range(100):
         time.sleep(0.005)
         progress.progress(i + 1)
 
-    # ---------------- CLEAN DATA ----------------
-    master_stores = [s.strip() for s in master_list.splitlines() if s.strip()]
-    lines = [l.strip() for l in raw_data.splitlines() if l.strip()]
+    # ---------------- CLEAN INPUT ----------------
+    master_lines = [m.strip() for m in master_list.splitlines() if m.strip()]
+    raw_lines = [r.strip() for r in raw_data.splitlines() if r.strip()]
 
+    # Search filter
+    if master_search:
+        master_lines = [m for m in master_lines if master_search.lower() in m.lower()]
+
+    if raw_search:
+        raw_lines = [r for r in raw_lines if raw_search.lower() in r.lower()]
+
+    # ---------------- LOGIC ----------------
     time_pattern = r'^\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)$'
-
     ignore_words = ["Panel", "Partition", "Disarmed", "Armed", "[Mobile]", "Command:"]
 
     extracted = {}
     current_store = None
 
-    for line in lines:
+    for line in raw_lines:
 
-        if any(word.lower() in line.lower() for word in ignore_words):
+        if any(w.lower() in line.lower() for w in ignore_words):
             continue
 
         if re.match(time_pattern, line):
@@ -144,7 +149,7 @@ if st.button("🚀 Process Data"):
     # ---------------- MATCHING ----------------
     results = []
 
-    for store in master_stores:
+    for store in master_lines:
 
         time_value = ""
 
@@ -167,10 +172,10 @@ if st.button("🚀 Process Data"):
     matched = len(df[df["Time"] != "❌ Missing"])
     missing = total - matched
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("📦 Total", total)
-    col2.metric("✅ Matched", matched)
-    col3.metric("❌ Missing", missing)
+    c1, c2, c3 = st.columns(3)
+    c1.metric("📦 Total Stores", total)
+    c2.metric("✅ Matched", matched)
+    c3.metric("❌ Missing", missing)
 
     st.markdown("---")
 
@@ -186,10 +191,3 @@ if st.button("🚀 Process Data"):
         "store_times.csv",
         "text/csv"
     )
-
-# ---------------- FOOTER ----------------
-st.markdown("""
-<div class="footer">
-Built for TOTALLYWIRELESSGROUP
-</div>
-""", unsafe_allow_html=True)
