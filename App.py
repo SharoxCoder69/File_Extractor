@@ -199,7 +199,6 @@ def best_match(store_name, raw_dict):
 
     return best_time
 
-
 results = []
 
 
