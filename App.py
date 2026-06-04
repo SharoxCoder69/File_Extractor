@@ -1,16 +1,16 @@
 import streamlit as st
 import pandas as pd
 import re
-from rapidfuzz import fuzz
+from sentence_transformers import SentenceTransformer, util
 
 # ---------------- PAGE ----------------
 st.set_page_config(
-    page_title="TWG Smart Dashboard",
+    page_title="TWG AI Dashboard",
     page_icon="📊",
     layout="wide"
 )
 
-# ---------------- STORE DATABASE ----------------
+# ---------------- STORE MASTER DATA ----------------
 STORE_DATA = {
     "VICTORY DR GA T32": {"id": "TWGGA32", "dm": "-"},
     "MILGEN GA T34": {"id": "TWGGA34", "dm": "-"},
@@ -87,91 +87,96 @@ STORE_DATA = {
     "WEST MERCURY BLVD 2": {"id": "TWGVA58", "dm": "Erika"}
 }
 
-# ---------------- MATCH STORE ----------------
-def normalize(t):
-    return re.sub(r'[^a-z0-9]', '', t.lower())
+# ---------------- AI MODEL ----------------
+@st.cache_resource
+def load_model():
+    return SentenceTransformer('all-MiniLM-L6-v2')
 
-def find_store(text):
-    best = None
-    score_best = 0
+model = load_model()
 
-    for store in STORE_DATA:
-        score = fuzz.partial_ratio(normalize(text), normalize(store))
-        if score > score_best and score >= 70:
-            score_best = score
-            best = store
+store_embeddings = {
+    store: model.encode(store)
+    for store in STORE_DATA
+}
 
-    return best
-
-# ---------------- SMART PARSER ----------------
+# ---------------- RAW PARSER ----------------
 def parse_raw(raw_text):
-    data = {}
+    data = []
 
-    lines = raw_text.splitlines()
-
-    for line in lines:
+    for line in raw_text.splitlines():
         line = line.strip()
         if not line:
             continue
 
-        # extract time anywhere in line
-        time_match = re.search(r'\d{1,2}:\d{2}\s?(AM|PM|am|pm)?', line)
+        match = re.search(r'\d{1,2}:\d{2}\s?(AM|PM|am|pm)?', line)
+        if not match:
+            continue
 
-        if time_match:
-            time = time_match.group()
+        time = match.group()
 
-            store = re.sub(r'\d{1,2}:\d{2}\s?(AM|PM|am|pm)?', '', line)
-            store = re.sub(r'[-|]', '', store).strip()
+        store = re.sub(r'\d{1,2}:\d{2}\s?(AM|PM|am|pm)?', '', line)
+        store = re.sub(r'[-|]', '', store).strip()
 
-            if store:
-                data[store] = time
+        if store:
+            data.append((store, time))
 
     return data
 
+# ---------------- AI MATCH ----------------
+def ai_match(text):
+    text_emb = model.encode(text)
+
+    best_store = None
+    best_score = 0
+
+    for store, emb in store_embeddings.items():
+        score = util.cos_sim(text_emb, emb).item()
+
+        if score > best_score:
+            best_score = score
+            best_store = store
+
+    return best_store
+
 # ---------------- UI ----------------
-st.title("📊 TWG SMART MASTER DASHBOARD")
+st.title("🤖 TWG AI SMART DASHBOARD")
 
 raw_data = st.text_area("📥 Paste Raw Data", height=250)
 
 # ---------------- PROCESS ----------------
 if st.button("🚀 Generate Report"):
 
-    extracted = parse_raw(raw_data)
+    parsed = parse_raw(raw_data)
 
     results = []
 
-    for store in STORE_DATA:
+    for raw_store, time in parsed:
 
-        matched = find_store(store)
+        matched = ai_match(raw_store)
 
         if matched:
-            time_value = extracted.get(matched, "")
             sid = STORE_DATA[matched]["id"]
             dm = STORE_DATA[matched]["dm"]
         else:
-            time_value = ""
             sid = ""
             dm = ""
 
         results.append({
-            "Store Name": store,
+            "Store Name": matched,
             "Store ID": sid,
             "DM": dm,
-            "Time": time_value if time_value else "❌ Missing"
+            "Raw Input": raw_store,
+            "Time": time
         })
 
     df = pd.DataFrame(results)
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Stores", len(df))
-    col2.metric("Matched", len(df[df["Time"] != "❌ Missing"]))
-    col3.metric("Missing", len(df[df["Time"] == "❌ Missing"]))
-
+    st.metric("Total Records", len(df))
     st.dataframe(df, use_container_width=True)
 
     st.download_button(
         "⬇ Download CSV",
         df.to_csv(index=False).encode(),
-        "twg_report.csv",
+        "twg_ai_report.csv",
         "text/csv"
     )
