@@ -9,11 +9,10 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- SAFE CSS ----------------
+# ---------------- SAFE UI CSS (NO BREAKING SELECTORS) ----------------
 st.markdown(
     """
     <style>
-
     .stApp {
         background-color: #0f172a;
         color: white;
@@ -28,57 +27,29 @@ st.markdown(
         color: #e2e8f0;
     }
 
-    /* Safe textarea styling */
-    textarea {
-        border-radius: 10px !important;
-    }
-
-    /* Button styling */
     .stButton>button {
         background: linear-gradient(90deg, #0ea5e9, #3b82f6);
         color: white;
         border-radius: 10px;
-        padding: 10px 20px;
-        border: none;
+        padding: 10px 18px;
         font-weight: bold;
+        border: none;
     }
 
     .stButton>button:hover {
-        transform: scale(1.02);
+        transform: scale(1.03);
     }
 
-    /* Footer */
     .footer {
         text-align: center;
         color: #94a3b8;
         margin-top: 30px;
         font-size: 14px;
     }
-
     </style>
     """,
     unsafe_allow_html=True
 )
-
-# ---------------- LOGIN ----------------
-def login():
-    st.title("🔐 TWG SmartOps Login")
-
-    user = st.text_input("Username")
-    pwd = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        if user and pwd:
-            st.session_state["logged_in"] = True
-        else:
-            st.error("Enter credentials")
-
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-
-if not st.session_state["logged_in"]:
-    login()
-    st.stop()
 
 # ---------------- STORE DATA ----------------
 STORE_DATA = {
@@ -152,13 +123,31 @@ def extract_store_time(raw):
 
     return result
 
-# ---------------- UI ----------------
+# ---------------- LOGIN (SIMPLE) ----------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    st.title("🔐 TWG SmartOps Login")
+
+    u = st.text_input("Username")
+    p = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if u and p:
+            st.session_state.logged_in = True
+        else:
+            st.error("Enter credentials")
+
+    st.stop()
+
+# ---------------- MAIN UI ----------------
 st.markdown("<h1>🚀 TWG SmartOps SaaS Dashboard</h1>", unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("### 📥 Raw Data Input")
+    st.markdown("### 📥 Raw Data")
     raw_data = st.text_area("", height=300)
 
 with col2:
@@ -170,6 +159,7 @@ if st.button("🚀 Run System"):
 
     final = []
 
+    # RAW
     for store_raw, time in extract_store_time(raw_data):
 
         matched = match_store(store_raw)
@@ -189,6 +179,7 @@ if st.button("🚀 Run System"):
             "Time": time
         })
 
+    # MANUAL
     for line in manual_data.splitlines():
 
         line = line.strip()
@@ -214,24 +205,18 @@ if st.button("🚀 Run System"):
 
     df = pd.DataFrame(final)
 
-    st.success("Processing Completed 🚀")
-
-    st.metric("Total Records", len(df))
+    st.success("Done 🚀")
 
     st.dataframe(df, use_container_width=True)
 
-    csv = df.to_csv(index=False).encode()
-
     st.download_button(
-        "⬇ Download Report",
-        csv,
-        "twg_report.csv",
+        "⬇ Download CSV",
+        df.to_csv(index=False).encode(),
+        "report.csv",
         "text/csv"
     )
 
-    st.subheader("📋 Copy Data")
-
-    st.text_area("Copy from here", df.to_csv(index=False), height=200)
+    st.text_area("📋 Copy Data", df.to_csv(index=False), height=200)
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
