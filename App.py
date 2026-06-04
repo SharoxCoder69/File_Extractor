@@ -27,7 +27,7 @@ def clean_text(text):
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-# ---------------- MATCH FUNCTION ----------------
+# ---------------- MATCH ----------------
 def ai_match(text):
 
     cleaned_input = clean_text(text)
@@ -42,10 +42,10 @@ def ai_match(text):
         if cleaned_store in cleaned_input or cleaned_input in cleaned_store:
             return store
 
-        common = len(set(cleaned_input.split()) & set(cleaned_store.split()))
+        score = len(set(cleaned_input.split()) & set(cleaned_store.split()))
 
-        if common > best_score:
-            best_score = common
+        if score > best_score:
+            best_score = score
             best_match = store
 
     if best_score >= 1:
@@ -53,7 +53,7 @@ def ai_match(text):
 
     return "UNMATCHED"
 
-# ---------------- EXTRACT FUNCTION ----------------
+# ---------------- EXTRACT ----------------
 def extract_store_time(raw_text):
 
     lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
@@ -89,26 +89,22 @@ st.title("🤖 TWG DATA PIPELINE SYSTEM")
 
 col1, col2 = st.columns(2)
 
-# ---------------- COLUMN 1 ----------------
+# ---------------- INPUT 1 ----------------
 with col1:
     st.subheader("📥 Raw Data Input")
-
     raw_data = st.text_area("Paste Raw Data", height=250)
 
-# ---------------- COLUMN 2 (NEW INPUT BOX) ----------------
+# ---------------- INPUT 2 ----------------
 with col2:
-    st.subheader("📥 Manual Store List (NEW)")
-
-    manual_data = st.text_area("Paste Store Names Only", height=250)
+    st.subheader("📥 Manual Store List")
+    manual_data = st.text_area("Paste Store Names", height=250)
 
 # ---------------- PROCESS ----------------
-if st.button("🚀 Process Both Inputs"):
+if st.button("🚀 Process Data"):
 
     final = []
 
-    # =========================
-    # 1. RAW DATA PROCESSING
-    # =========================
+    # ---------- RAW ----------
     extracted = extract_store_time(raw_data)
 
     for store_raw, time in extracted:
@@ -123,21 +119,20 @@ if st.button("🚀 Process Both Inputs"):
             dm = ""
 
         final.append({
-            "Source": "Raw Data",
+            "Source": "Raw",
             "Store Name": matched,
             "Store ID": sid,
             "DM": dm,
             "Time": time
         })
 
-    # =========================
-    # 2. MANUAL DATA PROCESSING
-    # =========================
+    # ---------- MANUAL ----------
     if manual_data:
+        for line in manual_data.splitlines():
 
-        manual_lines = [l.strip() for l in manual_data.splitlines() if l.strip()]
-
-        for line in manual_lines:
+            line = line.strip()
+            if not line:
+                continue
 
             matched = ai_match(line)
 
@@ -149,25 +144,33 @@ if st.button("🚀 Process Both Inputs"):
                 dm = ""
 
             final.append({
-                "Source": "Manual Input",
+                "Source": "Manual",
                 "Store Name": matched,
                 "Store ID": sid,
                 "DM": dm,
-                "Time": "",
+                "Time": ""
             })
 
-    # ---------------- OUTPUT ----------------
     df = pd.DataFrame(final)
-
     df = df.sort_values(by=["Store Name"])
 
     st.metric("Total Records", len(df))
 
     st.dataframe(df, use_container_width=True)
 
+    # ---------------- DOWNLOAD ----------------
+    csv_data = df.to_csv(index=False).encode()
+
     st.download_button(
         "⬇ Download CSV",
-        df.to_csv(index=False).encode(),
-        "twg_dual_pipeline.csv",
+        csv_data,
+        "twg_pipeline.csv",
         "text/csv"
     )
+
+    # ---------------- COPY SECTION ----------------
+    st.subheader("📋 Copy Data (CTRL + C)")
+
+    copy_text = df.to_csv(index=False)
+
+    st.text_area("Copy from here:", copy_text, height=200)
