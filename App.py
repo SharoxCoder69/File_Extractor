@@ -2,16 +2,35 @@ import streamlit as st
 import pandas as pd
 import re
 
-# ---------------- PAGE ----------------
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="TWG Data Pipeline",
-    page_icon="📊",
+    page_title="TWG SmartOps SaaS",
+    page_icon="🚀",
     layout="wide"
 )
 
-# ---------------- STORE DATA ----------------
-STORE_DATA = {
+# ---------------- SIMPLE LOGIN (DEMO) ----------------
+def login():
+    st.title("🔐 TWG SmartOps Login")
 
+    user = st.text_input("Username")
+    pwd = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if user and pwd:
+            st.session_state["logged_in"] = True
+        else:
+            st.error("Enter credentials")
+
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+
+if not st.session_state["logged_in"]:
+    login()
+    st.stop()
+
+# ---------------- STORE DATABASE ----------------
+STORE_DATA = {
     "HICKORY": {"id": "TWGNC52", "dm": "Angie"},
     "BRAGG BLVD": {"id": "TWGNC56", "dm": "Ollivanza"},
     "CANNON": {"id": "TWGNC50", "dm": "Kindi"},
@@ -27,150 +46,143 @@ def clean_text(text):
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-# ---------------- MATCH ----------------
-def ai_match(text):
+# ---------------- MATCH ENGINE ----------------
+def match_store(text):
+    text = clean_text(text)
 
-    cleaned_input = clean_text(text)
-
-    best_match = None
-    best_score = 0
+    best = None
+    score_max = 0
 
     for store in STORE_DATA:
+        s = clean_text(store)
 
-        cleaned_store = clean_text(store)
-
-        if cleaned_store in cleaned_input or cleaned_input in cleaned_store:
+        if s in text or text in s:
             return store
 
-        score = len(set(cleaned_input.split()) & set(cleaned_store.split()))
+        score = len(set(text.split()) & set(s.split()))
 
-        if score > best_score:
-            best_score = score
-            best_match = store
+        if score > score_max:
+            score_max = score
+            best = store
 
-    if best_score >= 1:
-        return best_match
+    if score_max >= 1:
+        return best
 
     return "UNMATCHED"
 
-# ---------------- EXTRACT ----------------
-def extract_store_time(raw_text):
+# ---------------- PARSER ----------------
+def extract(raw):
+    lines = [l.strip() for l in raw.splitlines() if l.strip()]
 
-    lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
-
-    results = []
+    out = []
     i = 0
 
     while i < len(lines):
 
         line = lines[i]
 
-        match = re.search(r'(.+?)\s+(\d{1,2}:\d{2}\s?(AM|PM|am|pm)?)', line)
+        m = re.search(r'(.+?)\s+(\d{1,2}:\d{2}\s?(AM|PM|am|pm)?)', line)
 
-        if match:
-            results.append((match.group(1), match.group(2)))
+        if m:
+            out.append((m.group(1), m.group(2)))
             i += 1
             continue
 
         if i + 1 < len(lines):
-            time_match = re.search(r'\d{1,2}:\d{2}', lines[i+1])
+            t = re.search(r'\d{1,2}:\d{2}', lines[i+1])
 
-            if time_match:
-                results.append((line, time_match.group()))
+            if t:
+                out.append((line, t.group()))
                 i += 2
                 continue
 
         i += 1
 
-    return results
+    return out
 
 # ---------------- UI ----------------
-st.title("🤖 TWG DATA PIPELINE SYSTEM")
+st.title("🚀 TWG SmartOps SaaS Dashboard")
+
+st.markdown("### 📊 Data Processing System")
 
 col1, col2 = st.columns(2)
 
-# ---------------- INPUT 1 ----------------
 with col1:
-    st.subheader("📥 Raw Data Input")
-    raw_data = st.text_area("Paste Raw Data", height=250)
+    st.subheader("📥 Raw Data")
+    raw_data = st.text_area("Paste raw data", height=300)
 
-# ---------------- INPUT 2 ----------------
 with col2:
-    st.subheader("📥 Manual Store List")
-    manual_data = st.text_area("Paste Store Names", height=250)
+    st.subheader("📥 Manual Store Input")
+    manual = st.text_area("Paste store names", height=300)
 
 # ---------------- PROCESS ----------------
-if st.button("🚀 Process Data"):
+if st.button("🚀 Run System"):
 
     final = []
 
-    # ---------- RAW ----------
-    extracted = extract_store_time(raw_data)
+    # RAW
+    for store_raw, time in extract(raw_data):
 
-    for store_raw, time in extracted:
+        m = match_store(store_raw)
 
-        matched = ai_match(store_raw)
-
-        if matched in STORE_DATA:
-            sid = STORE_DATA[matched]["id"]
-            dm = STORE_DATA[matched]["dm"]
+        if m in STORE_DATA:
+            sid = STORE_DATA[m]["id"]
+            dm = STORE_DATA[m]["dm"]
         else:
             sid = ""
             dm = ""
 
         final.append({
             "Source": "Raw",
-            "Store Name": matched,
+            "Store": m,
             "Store ID": sid,
             "DM": dm,
             "Time": time
         })
 
-    # ---------- MANUAL ----------
-    if manual_data:
-        for line in manual_data.splitlines():
+    # MANUAL
+    for line in manual.splitlines():
 
-            line = line.strip()
-            if not line:
-                continue
+        line = line.strip()
+        if not line:
+            continue
 
-            matched = ai_match(line)
+        m = match_store(line)
 
-            if matched in STORE_DATA:
-                sid = STORE_DATA[matched]["id"]
-                dm = STORE_DATA[matched]["dm"]
-            else:
-                sid = ""
-                dm = ""
+        if m in STORE_DATA:
+            sid = STORE_DATA[m]["id"]
+            dm = STORE_DATA[m]["dm"]
+        else:
+            sid = ""
+            dm = ""
 
-            final.append({
-                "Source": "Manual",
-                "Store Name": matched,
-                "Store ID": sid,
-                "DM": dm,
-                "Time": ""
-            })
+        final.append({
+            "Source": "Manual",
+            "Store": m,
+            "Store ID": sid,
+            "DM": dm,
+            "Time": ""
+        })
 
     df = pd.DataFrame(final)
-    df = df.sort_values(by=["Store Name"])
+
+    st.success("Processing Complete 🚀")
 
     st.metric("Total Records", len(df))
 
     st.dataframe(df, use_container_width=True)
 
     # ---------------- DOWNLOAD ----------------
-    csv_data = df.to_csv(index=False).encode()
+    csv = df.to_csv(index=False).encode()
 
     st.download_button(
-        "⬇ Download CSV",
-        csv_data,
-        "twg_pipeline.csv",
+        "⬇ Download Report",
+        csv,
+        "twg_report.csv",
         "text/csv"
     )
 
-    # ---------------- COPY SECTION ----------------
-    st.subheader("📋 Copy Data (CTRL + C)")
+    # ---------------- COPY ----------------
+    st.subheader("📋 Copy Data")
 
-    copy_text = df.to_csv(index=False)
-
-    st.text_area("Copy from here:", copy_text, height=200)
+    st.text_area("Copy from here", df.to_csv(index=False), height=200)
