@@ -184,7 +184,33 @@ if st.button("🚀 Generate Report"):
     results = []
 
     # 🔥 SMART MATCHING FIX
-    for store_name, store_id in STORE_MAP.items():
+    from rapidfuzz import fuzz
+
+def best_match(store_name, raw_dict):
+    best_score = 0
+    best_time = ""
+
+    for raw_store, t in raw_dict.items():
+        score = fuzz.partial_ratio(store_name, raw_store)
+
+        if score > best_score and score > 70:
+            best_score = score
+            best_time = t
+
+    return best_time
+
+
+results = []
+
+for store_name, store_id in STORE_MAP.items():
+
+    time_value = best_match(store_name, extracted)
+
+    results.append({
+        "Store Name": store_name,
+        "Store ID": store_id,
+        "Time": time_value if time_value else "❌ Missing"
+    })
 
         store_clean = normalize(store_name)
         time_value = ""
