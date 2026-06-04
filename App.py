@@ -5,7 +5,7 @@ from rapidfuzz import fuzz
 
 # ---------------- PAGE ----------------
 st.set_page_config(
-    page_title="TWG Store Dashboard",
+    page_title="TWG Intelligence Dashboard",
     page_icon="📊",
     layout="wide"
 )
@@ -40,13 +40,52 @@ STORE_MAP = {
     "LUMBERTON NC": "TWGNC57"
 }
 
-# ---------------- LOGIN ----------------
+# ---------------- SESSION ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user = ""
 
-def login():
-    st.title("🔐 TWG Login Portal")
+# ---------------- LOGIN PAGE ----------------
+def login_page():
+
+    st.markdown("""
+    <style>
+    .login-title{
+        text-align:center;
+        font-size:40px;
+        font-weight:800;
+        color:#00ffcc;
+        margin-bottom:30px;
+        text-shadow:0 0 20px #00ffcc;
+    }
+
+    .stApp{
+        background: radial-gradient(circle at top,#0f172a,#020617);
+    }
+
+    div[data-testid="stTextInput"] input{
+        border-radius:12px;
+        padding:10px;
+    }
+
+    div.stButton > button {
+        width:100%;
+        background: linear-gradient(90deg,#00ffcc,#2563eb);
+        color:black;
+        font-weight:bold;
+        border-radius:12px;
+        padding:10px;
+        transition:0.3s;
+    }
+
+    div.stButton > button:hover{
+        transform:scale(1.03);
+        box-shadow:0 0 20px #00ffcc;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='login-title'>🔐 TWG Login Portal</div>", unsafe_allow_html=True)
 
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
@@ -57,92 +96,101 @@ def login():
             st.session_state.user = u
             st.rerun()
         else:
-            st.error("Wrong credentials")
+            st.error("Invalid credentials")
 
     st.stop()
 
 if not st.session_state.logged_in:
-    login()
+    login_page()
 
 # ---------------- LOGOUT ----------------
-st.sidebar.write(f"👤 Logged in: {st.session_state.user}")
+st.sidebar.markdown(f"👤 **User:** {st.session_state.user}")
 
 if st.sidebar.button("Logout"):
     st.session_state.logged_in = False
     st.session_state.user = ""
     st.rerun()
 
-# ---------------- MODERN CSS ----------------
+# ---------------- MAIN UI STYLE ----------------
 st.markdown("""
 <style>
 
 /* Background */
 .stApp {
-    background: radial-gradient(circle at top, #0b1220, #050814);
-    color: white;
+    background: radial-gradient(circle at top,#0b1220,#050814);
+    color:white;
 }
 
-/* Title Glow */
-h1 {
-    color: #00ffcc;
-    text-align: center;
-    text-shadow: 0 0 15px #00ffcc;
+/* Title */
+.main-title{
+    text-align:center;
+    font-size:38px;
+    font-weight:800;
+    color:#00ffcc;
+    text-shadow:0 0 20px #00ffcc;
+    margin-bottom:10px;
 }
 
-/* Text area */
-textarea {
-    border-radius: 12px !important;
-    border: 1px solid #00ffcc !important;
+/* Card effect */
+.block-container{
+    padding-top:2rem;
+}
+
+/* Textarea */
+textarea{
+    border-radius:14px !important;
+    border:1px solid #00ffcc !important;
+    background: rgba(255,255,255,0.03) !important;
+    color:white !important;
 }
 
 /* Button */
-.stButton > button {
-    background: linear-gradient(135deg,#00ffcc,#2563eb);
-    color: black;
-    font-weight: bold;
-    border-radius: 12px;
-    padding: 10px 20px;
-    transition: 0.3s;
+div.stButton > button{
+    background: linear-gradient(90deg,#00ffcc,#3b82f6);
+    color:black;
+    font-weight:bold;
+    border-radius:12px;
+    padding:10px;
+    transition:0.3s;
 }
 
-.stButton > button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px #00ffcc;
+div.stButton > button:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 25px #00ffcc;
 }
 
-/* Metrics */
-div[data-testid="metric-container"] {
+/* Metrics cards */
+div[data-testid="metric-container"]{
     background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    padding: 10px;
-    box-shadow: 0 0 10px rgba(0,255,204,0.2);
+    border-radius:16px;
+    padding:15px;
+    box-shadow:0 0 15px rgba(0,255,204,0.15);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- INPUT ----------------
-st.title("📊 TWG Store Dashboard")
+# ---------------- TITLE ----------------
+st.markdown("<div class='main-title'>📊 TWG Intelligence Dashboard</div>", unsafe_allow_html=True)
 
-raw_data = st.text_area("📥 Raw Data", height=250)
+# ---------------- INPUT ----------------
+raw_data = st.text_area("📥 Paste Raw Data Here", height=250)
 
 # ---------------- CLEAN ----------------
 def normalize(text):
     return re.sub(r'[^a-z0-9]', '', text.lower())
 
-# ---------------- FIXED FUZZY MATCH ----------------
+# ---------------- MATCH ----------------
 def best_match(store_name, raw_dict):
 
     best_score = 0
     best_time = ""
 
-    store_clean = normalize(store_name)
+    s = normalize(store_name)
 
-    for raw_store, t in raw_dict.items():
+    for r, t in raw_dict.items():
 
-        raw_clean = normalize(raw_store)
-
-        score = fuzz.partial_ratio(store_clean, raw_clean)
+        score = fuzz.partial_ratio(s, normalize(r))
 
         if score > best_score and score >= 70:
             best_score = score
@@ -154,34 +202,39 @@ def best_match(store_name, raw_dict):
 if st.button("🚀 Generate Report"):
 
     if not raw_data:
-        st.warning("Add raw data first")
+        st.warning("Please paste raw data")
         st.stop()
 
-    lines = [l.strip() for l in raw_data.splitlines() if l.strip()]
-
-    time_pattern = r'^\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)$'
+    lines = raw_data.splitlines()
 
     extracted = {}
     current = None
 
+    time_pattern = r'^\d{1,2}:\d{2}\s?(AM|PM|am|pm)?$'
+
     for line in lines:
+
+        line = line.strip()
+
+        if not line:
+            continue
 
         if re.match(time_pattern, line):
             if current:
-                extracted[current.upper()] = line
+                extracted[current] = line
             continue
 
         current = line
 
     results = []
 
-    for store_name, store_id in STORE_MAP.items():
+    for store, sid in STORE_MAP.items():
 
-        time_value = best_match(store_name, extracted)
+        time_value = best_match(store, extracted)
 
         results.append({
-            "Store Name": store_name,
-            "Store ID": store_id,
+            "Store Name": store,
+            "Store ID": sid,
             "Time": time_value if time_value else "❌ Missing"
         })
 
@@ -189,13 +242,13 @@ if st.button("🚀 Generate Report"):
 
     col1, col2 = st.columns(2)
     col1.metric("Total Stores", len(df))
-    col2.metric("Matched Stores", len(df[df["Time"] != "❌ Missing"]))
+    col2.metric("Matched", len(df[df["Time"] != "❌ Missing"]))
 
     st.dataframe(df, use_container_width=True)
 
     st.download_button(
         "⬇ Download CSV",
-        df.to_csv(index=False).encode("utf-8"),
+        df.to_csv(index=False).encode(),
         "twg_report.csv",
         "text/csv"
     )
