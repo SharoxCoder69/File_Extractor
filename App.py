@@ -2,14 +2,14 @@ import streamlit as st
 import pandas as pd
 import re
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------- PAGE ----------------
 st.set_page_config(
     page_title="TWG SmartOps SaaS",
     page_icon="🚀",
     layout="wide"
 )
 
-# ---------------- SIMPLE LOGIN (DEMO) ----------------
+# ---------------- LOGIN SYSTEM (BASIC DEMO) ----------------
 def login():
     st.title("🔐 TWG SmartOps Login")
 
@@ -20,7 +20,7 @@ def login():
         if user and pwd:
             st.session_state["logged_in"] = True
         else:
-            st.error("Enter credentials")
+            st.error("Please enter credentials")
 
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
@@ -39,7 +39,7 @@ STORE_DATA = {
     "CHERRY T42": {"id": "TWGSC42", "dm": "Kindi"},
 }
 
-# ---------------- CLEAN ----------------
+# ---------------- CLEAN FUNCTION ----------------
 def clean_text(text):
     text = str(text).upper()
     text = re.sub(r'[^A-Z0-9 ]', ' ', text)
@@ -51,9 +51,10 @@ def match_store(text):
     text = clean_text(text)
 
     best = None
-    score_max = 0
+    best_score = 0
 
     for store in STORE_DATA:
+
         s = clean_text(store)
 
         if s in text or text in s:
@@ -61,30 +62,31 @@ def match_store(text):
 
         score = len(set(text.split()) & set(s.split()))
 
-        if score > score_max:
-            score_max = score
+        if score > best_score:
+            best_score = score
             best = store
 
-    if score_max >= 1:
+    if best_score >= 1:
         return best
 
     return "UNMATCHED"
 
-# ---------------- PARSER ----------------
-def extract(raw):
+# ---------------- EXTRACT FUNCTION ----------------
+def extract_store_time(raw):
+
     lines = [l.strip() for l in raw.splitlines() if l.strip()]
 
-    out = []
+    result = []
     i = 0
 
     while i < len(lines):
 
         line = lines[i]
 
-        m = re.search(r'(.+?)\s+(\d{1,2}:\d{2}\s?(AM|PM|am|pm)?)', line)
+        match = re.search(r'(.+?)\s+(\d{1,2}:\d{2}\s?(AM|PM|am|pm)?)', line)
 
-        if m:
-            out.append((m.group(1), m.group(2)))
+        if match:
+            result.append((match.group(1), match.group(2)))
             i += 1
             continue
 
@@ -92,73 +94,73 @@ def extract(raw):
             t = re.search(r'\d{1,2}:\d{2}', lines[i+1])
 
             if t:
-                out.append((line, t.group()))
+                result.append((line, t.group()))
                 i += 2
                 continue
 
         i += 1
 
-    return out
+    return result
 
 # ---------------- UI ----------------
 st.title("🚀 TWG SmartOps SaaS Dashboard")
 
-st.markdown("### 📊 Data Processing System")
+st.markdown("### 📊 Store Data Processing System")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("📥 Raw Data")
+    st.subheader("📥 Raw Data Input")
     raw_data = st.text_area("Paste raw data", height=300)
 
 with col2:
     st.subheader("📥 Manual Store Input")
-    manual = st.text_area("Paste store names", height=300)
+    manual_data = st.text_area("Paste store names", height=300)
 
 # ---------------- PROCESS ----------------
 if st.button("🚀 Run System"):
 
     final = []
 
-    # RAW
-    for store_raw, time in extract(raw_data):
+    # RAW DATA
+    for store_raw, time in extract_store_time(raw_data):
 
-        m = match_store(store_raw)
+        matched = match_store(store_raw)
 
-        if m in STORE_DATA:
-            sid = STORE_DATA[m]["id"]
-            dm = STORE_DATA[m]["dm"]
+        if matched in STORE_DATA:
+            sid = STORE_DATA[matched]["id"]
+            dm = STORE_DATA[matched]["dm"]
         else:
             sid = ""
             dm = ""
 
         final.append({
             "Source": "Raw",
-            "Store": m,
+            "Store Name": matched,
             "Store ID": sid,
             "DM": dm,
             "Time": time
         })
 
-    # MANUAL
-    for line in manual.splitlines():
+    # MANUAL DATA
+    for line in manual_data.splitlines():
 
         line = line.strip()
         if not line:
             continue
 
-        m = match_store(line)
+        matched = match_store(line)
 
-        if m in STORE_DATA:
-            sid = STORE_DATA[m]["id"]
-            dm = STORE_DATA[m]["dm"]
+        if matched in STORE_DATA:
+            sid = STORE_DATA[matched]["id"]
+            dm = STORE_DATA[matched]["dm"]
         else:
             sid = ""
             dm = ""
 
         final.append({
             "Source": "Manual",
-            "Store": m,
+            "Store Name": matched,
             "Store ID": sid,
             "DM": dm,
             "Time": ""
@@ -166,7 +168,7 @@ if st.button("🚀 Run System"):
 
     df = pd.DataFrame(final)
 
-    st.success("Processing Complete 🚀")
+    st.success("Processing Completed 🚀")
 
     st.metric("Total Records", len(df))
 
@@ -186,3 +188,16 @@ if st.button("🚀 Run System"):
     st.subheader("📋 Copy Data")
 
     st.text_area("Copy from here", df.to_csv(index=False), height=200)
+
+# ---------------- FOOTER ----------------
+st.markdown("---")
+
+st.markdown(
+    """
+    <div style='text-align: center; font-size: 16px; color: grey;'>
+        Created by <b>Noor Ul Ain</b> <br>
+        Managed by <b>Sharox Javaid</b>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
