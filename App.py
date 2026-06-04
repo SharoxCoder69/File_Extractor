@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- STORE MASTER DATA ----------------
+# ---------------- STORE DATA ----------------
 STORE_DATA = {
     "VICTORY DR GA T32": {"id": "TWGGA32", "dm": "-"},
     "MILGEN GA T34": {"id": "TWGGA34", "dm": "-"},
@@ -37,54 +37,7 @@ STORE_DATA = {
     "NC FAY DUNN": {"id": "TWGNC77", "dm": "Ollivanza"},
     "3620 RAMSEY ST": {"id": "TWGNC78", "dm": "Ollivanza"},
     "5135 RAEFORD RD": {"id": "TWGNC79", "dm": "Ollivanza"},
-    "NC LAURINBURG": {"id": "TWGNC80", "dm": "Ollivanza"},
-    "AVONDALE NC T38": {"id": "TWGNC38", "dm": "Ben"},
-    "GATE CITY NC T3": {"id": "TWGNC03", "dm": "Tom"},
-    "COLISEUM NC T11": {"id": "TWGNC11", "dm": "Ben"},
-    "EAST CONE NC T12": {"id": "TWGNC12", "dm": "Ben"},
-    "EAST MARKET NC T1": {"id": "TWGNC01", "dm": "Ben"},
-    "WEST MARKET NC T2": {"id": "TWGNC02", "dm": "Ben"},
-    "RAMADA NC T13": {"id": "TWGNC13", "dm": "Ben"},
-    "ASHEBORO NC T10": {"id": "TWGNC10", "dm": "Ben"},
-    "EASTCHESTER NC T8": {"id": "TWGNC08", "dm": "Ben"},
-    "GREENSBORO NC T7": {"id": "TWGNC07", "dm": "Tom"},
-    "LEXINGTON NC T9": {"id": "TWGNC09", "dm": "Kindi"},
-    "THOMASVILLE NC T6": {"id": "TWGNC06", "dm": "Ahmed"},
-    "HANES MALL NC T5": {"id": "TWGNC05", "dm": "Ahmed"},
-    "WALKERTOWN NC T4": {"id": "TWGNC04", "dm": "Ahmed"},
-    "WAUGHTOWN NC T14": {"id": "TWGNC14", "dm": "Ahmed"},
-    "UNIVERSITY NC T16": {"id": "TWGNC16", "dm": "Ahmed"},
-    "REYNOLDA NC T15": {"id": "TWGNC15", "dm": "Kindi"},
-    "MONITOR SC T21": {"id": "TWGSC21", "dm": "Noaman"},
-    "SHOCKLEY SC T22": {"id": "TWGSC22", "dm": "Noaman"},
-    "ANDERSON MAIN ST": {"id": "TWGSC66", "dm": "Noaman"},
-    "CEDAR LANE SC T18": {"id": "TWGSC18", "dm": "Noaman"},
-    "EASLEY SC T20": {"id": "TWGSC20", "dm": "Noaman"},
-    "LAURENS SC T31": {"id": "TWGSC31", "dm": "Noaman"},
-    "VA73 LYNCHBURG": {"id": "TWGVA73", "dm": "Mekail"},
-    "S LABURNUM T48": {"id": "TWGVA48", "dm": "Syed"},
-    "STAPLES MILL": {"id": "TWGVA67", "dm": "Syed"},
-    "NINE MILE": {"id": "TWGVA65", "dm": "Syed"},
-    "7223 HULL ST T45": {"id": "TWGVA45", "dm": "Syed"},
-    "CHESTER VA": {"id": "TWGVA64", "dm": "Syed"},
-    "VA68 CHAMABERLAYNE": {"id": "TWGVA68", "dm": "Syed"},
-    "VA 69 JUNCTION": {"id": "TWGVA69", "dm": "Pether"},
-    "VA70 PLANK": {"id": "TWGVA70", "dm": "Pether"},
-    "VA71 RIO": {"id": "TWGVA71", "dm": "Pether"},
-    "VA72 W MAIN": {"id": "TWGVA72", "dm": "Pether"},
-    "W BROAD ST T47": {"id": "TWGVA47", "dm": "Pether"},
-    "BATTLEFIELD BLVD": {"id": "TWGVA59", "dm": "Tom"},
-    "GEORGE W. VA T25": {"id": "TWGVA25", "dm": "Tom"},
-    "KECOUGHTAN VA T26": {"id": "TWGVA26", "dm": "Ysimailyn"},
-    "NORFOLK VA T27": {"id": "TWGVA27", "dm": "Ysimailyn"},
-    "VIRGINIA BEACH T40": {"id": "TWGVA40", "dm": "Ysimailyn"},
-    "GREAT NECK RD": {"id": "TWGVA60", "dm": "Ysimailyn"},
-    "J CLYDE MORRIS": {"id": "TWGVA63", "dm": "Ysimailyn"},
-    "NEWMARKET DR": {"id": "TWGVA62", "dm": "Ysimailyn"},
-    "HIGH ST VA T24": {"id": "TWGVA24", "dm": "Ysimailyn"},
-    "ABERDEEN VA T28": {"id": "TWGVA28", "dm": "Erika"},
-    "WARWICK BLVD": {"id": "TWGVA61", "dm": "Erika"},
-    "WEST MERCURY BLVD 2": {"id": "TWGVA58", "dm": "Erika"}
+    "NC LAURINBURG": {"id": "TWGNC80", "dm": "Ollivanza"}
 }
 
 # ---------------- AI MODEL ----------------
@@ -99,28 +52,45 @@ store_embeddings = {
     for store in STORE_DATA
 }
 
-# ---------------- RAW PARSER ----------------
+# ---------------- CLEAN ----------------
+def clean(t):
+    return re.sub(r'[^a-z0-9 ]', '', t.lower()).strip()
+
+# ---------------- FIXED PARSER ----------------
 def parse_raw(raw_text):
-    data = []
+    lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
 
-    for line in raw_text.splitlines():
-        line = line.strip()
-        if not line:
+    results = []
+    i = 0
+
+    while i < len(lines):
+
+        line = lines[i]
+
+        # CASE 1: store + time same line
+        match = re.search(r'(.+?)\s+(\d{1,2}:\d{2}\s?(AM|PM|am|pm)?)', line)
+
+        if match:
+            store = match.group(1).strip()
+            time = match.group(2).strip()
+            results.append((store, time))
+            i += 1
             continue
 
-        match = re.search(r'\d{1,2}:\d{2}\s?(AM|PM|am|pm)?', line)
-        if not match:
-            continue
+        # CASE 2: next line time
+        if i + 1 < len(lines):
+            time_match = re.search(r'\d{1,2}:\d{2}\s?(AM|PM|am|pm)?', lines[i+1])
 
-        time = match.group()
+            if time_match:
+                store = line
+                time = time_match.group()
+                results.append((store, time))
+                i += 2
+                continue
 
-        store = re.sub(r'\d{1,2}:\d{2}\s?(AM|PM|am|pm)?', '', line)
-        store = re.sub(r'[-|]', '', store).strip()
+        i += 1
 
-        if store:
-            data.append((store, time))
-
-    return data
+    return results
 
 # ---------------- AI MATCH ----------------
 def ai_match(text):
@@ -141,12 +111,19 @@ def ai_match(text):
 # ---------------- UI ----------------
 st.title("🤖 TWG AI SMART DASHBOARD")
 
-raw_data = st.text_area("📥 Paste Raw Data", height=250)
+raw_data = st.text_area("📥 Paste Raw Data", height=300)
 
 # ---------------- PROCESS ----------------
 if st.button("🚀 Generate Report"):
 
     parsed = parse_raw(raw_data)
+
+    # 🔥 DEBUG (agar 0 aaye to dekh sako)
+    st.write("DEBUG PARSED DATA:", parsed)
+
+    if len(parsed) == 0:
+        st.error("No data parsed. Check raw format.")
+        st.stop()
 
     results = []
 
@@ -165,13 +142,15 @@ if st.button("🚀 Generate Report"):
             "Store Name": matched,
             "Store ID": sid,
             "DM": dm,
-            "Raw Input": raw_store,
+            "Raw Store": raw_store,
             "Time": time
         })
 
     df = pd.DataFrame(results)
 
     st.metric("Total Records", len(df))
+    st.metric("Matched Stores", len(df[df["Store Name"] != ""]))
+
     st.dataframe(df, use_container_width=True)
 
     st.download_button(
