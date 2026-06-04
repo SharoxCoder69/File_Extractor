@@ -9,7 +9,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- SAFE UI CSS (NO BREAKING SELECTORS) ----------------
+# ---------------- SAFE CSS ----------------
 st.markdown(
     """
     <style>
@@ -23,10 +23,6 @@ st.markdown(
         color: #38bdf8;
     }
 
-    h3 {
-        color: #e2e8f0;
-    }
-
     .stButton>button {
         background: linear-gradient(90deg, #0ea5e9, #3b82f6);
         color: white;
@@ -34,10 +30,6 @@ st.markdown(
         padding: 10px 18px;
         font-weight: bold;
         border: none;
-    }
-
-    .stButton>button:hover {
-        transform: scale(1.03);
     }
 
     .footer {
@@ -50,6 +42,24 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# ---------------- LOGIN ----------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    st.title("🔐 TWG SmartOps Login")
+
+    user = st.text_input("Username", key="user_login")
+    pwd = st.text_input("Password", type="password", key="pass_login")
+
+    if st.button("Login", key="login_btn"):
+        if user and pwd:
+            st.session_state.logged_in = True
+        else:
+            st.error("Enter credentials")
+
+    st.stop()
 
 # ---------------- STORE DATA ----------------
 STORE_DATA = {
@@ -123,39 +133,22 @@ def extract_store_time(raw):
 
     return result
 
-# ---------------- LOGIN (SIMPLE) ----------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-if not st.session_state.logged_in:
-    st.title("🔐 TWG SmartOps Login")
-
-    u = st.text_input("Username")
-    p = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        if u and p:
-            st.session_state.logged_in = True
-        else:
-            st.error("Enter credentials")
-
-    st.stop()
-
-# ---------------- MAIN UI ----------------
+# ---------------- UI ----------------
 st.markdown("<h1>🚀 TWG SmartOps SaaS Dashboard</h1>", unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 
+# ✅ FIXED: UNIQUE KEYS (IMPORTANT)
 with col1:
-    st.markdown("### 📥 Raw Data")
-    raw_data = st.text_area("", height=300)
+    st.markdown("### 📥 Raw Data Input")
+    raw_data = st.text_area("Paste Raw Data", height=300, key="raw_input")
 
 with col2:
     st.markdown("### 📥 Manual Store Input")
-    manual_data = st.text_area("", height=300)
+    manual_data = st.text_area("Paste Manual Store Data", height=300, key="manual_input")
 
 # ---------------- PROCESS ----------------
-if st.button("🚀 Run System"):
+if st.button("🚀 Run System", key="run_btn"):
 
     final = []
 
@@ -205,18 +198,32 @@ if st.button("🚀 Run System"):
 
     df = pd.DataFrame(final)
 
-    st.success("Done 🚀")
+    st.success("Processing Completed 🚀")
+
+    st.metric("Total Records", len(df))
 
     st.dataframe(df, use_container_width=True)
 
+    # DOWNLOAD
+    csv = df.to_csv(index=False).encode()
+
     st.download_button(
         "⬇ Download CSV",
-        df.to_csv(index=False).encode(),
-        "report.csv",
-        "text/csv"
+        csv,
+        "twg_report.csv",
+        "text/csv",
+        key="download_btn"
     )
 
-    st.text_area("📋 Copy Data", df.to_csv(index=False), height=200)
+    # COPY
+    st.subheader("📋 Copy Data")
+
+    st.text_area(
+        "Copy from here",
+        df.to_csv(index=False),
+        height=200,
+        key="copy_box"
+    )
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
