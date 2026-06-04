@@ -3,7 +3,7 @@ import pandas as pd
 import re
 from rapidfuzz import fuzz
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------- PAGE ----------------
 st.set_page_config(
     page_title="TWG Store Dashboard",
     page_icon="📊",
@@ -37,61 +37,7 @@ STORE_MAP = {
     "BONANZA NC T37": "TWGNC37",
     "HOPE MILLS T39": "TWGNC39",
     "BRAGG BLVD": "TWGNC56",
-    "LUMBERTON NC": "TWGNC57",
-    "GOOD MIDDLING": "TWGNC74",
-    "N EASTERN BLVD": "TWGNC75",
-    "6916 CLIFFDALE RD": "TWGNC76",
-    "NC FAY DUNN": "TWGNC77",
-    "3620 RAMSEY ST": "TWGNC78",
-    "5135 RAEFORD RD": "TWGNC79",
-    "NC LAURINBURG": "TWGNC80",
-    "AVONDALE NC T38": "TWGNC38",
-    "GATE CITY NC T3": "TWGNC03",
-    "COLISEUM NC T11": "TWGNC11",
-    "EAST CONE NC T12": "TWGNC12",
-    "EAST MARKET NC T1": "TWGNC01",
-    "WEST MARKET NC T2": "TWGNC02",
-    "RAMADA NC T13": "TWGNC13",
-    "ASHEBORO NC T10": "TWGNC10",
-    "EASTCHESTER NC T8": "TWGNC08",
-    "GREENSBORO NC T7": "TWGNC07",
-    "LEXINGTON NC T9": "TWGNC09",
-    "THOMASVILLE NC T6": "TWGNC06",
-    "HANES MALL NC T5": "TWGNC05",
-    "WALKERTOWN NC T4": "TWGNC04",
-    "WAUGHTOWN NC T14": "TWGNC14",
-    "UNIVERSITY NC T16": "TWGNC16",
-    "REYNOLDA NC T15": "TWGNC15",
-    "MONITOR SC T21": "TWGSC21",
-    "SHOCKLEY SC T22": "TWGSC22",
-    "ANDERSON MAIN ST": "TWGSC66",
-    "CEDAR LANE SC T18": "TWGSC18",
-    "EASLEY SC T20": "TWGSC20",
-    "LAURENS SC T31": "TWGSC31",
-    "VA73 LYNCHBURG": "TWGVA73",
-    "S LABURNUM T48": "TWGVA48",
-    "STAPLES MILL": "TWGVA67",
-    "NINE MILE": "TWGVA65",
-    "7223 HULL ST T45": "TWGVA45",
-    "CHESTER VA": "TWGVA64",
-    "VA68 CHAMABERLAYNE": "TWGVA68",
-    "VA 69 JUNCTION": "TWGVA69",
-    "VA70 PLANK": "TWGVA70",
-    "VA71 RIO": "TWGVA71",
-    "VA72 W MAIN": "TWGVA72",
-    "W BROAD ST T47": "TWGVA47",
-    "BATTLEFIELD BLVD": "TWGVA59",
-    "GEORGE W. VA T25": "TWGVA25",
-    "KECOUGHTAN VA T26": "TWGVA26",
-    "NORFOLK VA T27": "TWGVA27",
-    "VIRGINIA BEACH T40": "TWGVA40",
-    "GREAT NECK RD": "TWGVA60",
-    "J CLYDE MORRIS": "TWGVA63",
-    "NEWMARKET DR": "TWGVA62",
-    "HIGH ST VA T24": "TWGVA24",
-    "ABERDEEN VA T28": "TWGVA28",
-    "WARWICK BLVD": "TWGVA61",
-    "WEST MERCURY BLVD 2": "TWGVA58"
+    "LUMBERTON NC": "TWGNC57"
 }
 
 # ---------------- LOGIN ----------------
@@ -100,7 +46,7 @@ if "logged_in" not in st.session_state:
     st.session_state.user = ""
 
 def login():
-    st.title("🔐 TWG Login")
+    st.title("🔐 TWG Login Portal")
 
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
@@ -119,26 +65,59 @@ if not st.session_state.logged_in:
     login()
 
 # ---------------- LOGOUT ----------------
-st.sidebar.write(f"👤 {st.session_state.user}")
+st.sidebar.write(f"👤 Logged in: {st.session_state.user}")
 
 if st.sidebar.button("Logout"):
     st.session_state.logged_in = False
     st.session_state.user = ""
     st.rerun()
 
-# ---------------- STYLE ----------------
+# ---------------- MODERN CSS ----------------
 st.markdown("""
 <style>
+
+/* Background */
 .stApp {
     background: radial-gradient(circle at top, #0b1220, #050814);
     color: white;
 }
-.stButton > button {
-    background: linear-gradient(135deg,#2563eb,#06b6d4);
-    color: white;
-    font-weight: bold;
-    border-radius: 10px;
+
+/* Title Glow */
+h1 {
+    color: #00ffcc;
+    text-align: center;
+    text-shadow: 0 0 15px #00ffcc;
 }
+
+/* Text area */
+textarea {
+    border-radius: 12px !important;
+    border: 1px solid #00ffcc !important;
+}
+
+/* Button */
+.stButton > button {
+    background: linear-gradient(135deg,#00ffcc,#2563eb);
+    color: black;
+    font-weight: bold;
+    border-radius: 12px;
+    padding: 10px 20px;
+    transition: 0.3s;
+}
+
+.stButton > button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #00ffcc;
+}
+
+/* Metrics */
+div[data-testid="metric-container"] {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0,255,204,0.2);
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -147,26 +126,32 @@ st.title("📊 TWG Store Dashboard")
 
 raw_data = st.text_area("📥 Raw Data", height=250)
 
-# ---------------- CLEAN FUNCTION ----------------
+# ---------------- CLEAN ----------------
 def normalize(text):
     return re.sub(r'[^a-z0-9]', '', text.lower())
 
-# ---------------- FUZZY MATCH ----------------
+# ---------------- FIXED FUZZY MATCH ----------------
 def best_match(store_name, raw_dict):
+
     best_score = 0
     best_time = ""
 
-    for raw_store, t in raw_dict.items():
-        score = fuzz.partial_ratio(store_name, raw_store)
+    store_clean = normalize(store_name)
 
-        if score > best_score and score > 70:
+    for raw_store, t in raw_dict.items():
+
+        raw_clean = normalize(raw_store)
+
+        score = fuzz.partial_ratio(store_clean, raw_clean)
+
+        if score > best_score and score >= 70:
             best_score = score
             best_time = t
 
     return best_time
 
 # ---------------- PROCESS ----------------
-if st.button("Generate Report"):
+if st.button("🚀 Generate Report"):
 
     if not raw_data:
         st.warning("Add raw data first")
@@ -202,8 +187,9 @@ if st.button("Generate Report"):
 
     df = pd.DataFrame(results)
 
-    st.metric("Total Stores", len(df))
-    st.metric("Matched", len(df[df["Time"] != "❌ Missing"]))
+    col1, col2 = st.columns(2)
+    col1.metric("Total Stores", len(df))
+    col2.metric("Matched Stores", len(df[df["Time"] != "❌ Missing"]))
 
     st.dataframe(df, use_container_width=True)
 
