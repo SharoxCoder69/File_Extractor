@@ -2,24 +2,35 @@ import streamlit as st
 import pandas as pd
 import re
 
-st.set_page_config(page_title="Store System", layout="wide")
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="Store Time System",
+    page_icon="📊",
+    layout="wide"
+)
 
+# ---------------- STORE MAP ----------------
 STORE_MAP = {
     "HICKORY": "TWGNC52",
     "MOORESVILLE": "TWGNC53",
     "CANNON": "TWGNC50",
-    "SALISBURY NC T17": "TWGNC17"
+    "SALISBURY NC T17": "TWGNC17",
+    "LINCOLNTON NC T30": "TWGNC30",
+    "ROXIE ST": "TWGNC51",
+    "ASHEBORO NC T10": "TWGNC10",
+    "GREENSBORO NC T7": "TWGNC07",
+    "LEXINGTON NC T9": "TWGNC09"
 }
 
-# -------- CLEAN --------
+# ---------------- CLEAN FUNCTION ----------------
 def clean(text):
     return re.sub(r'[^a-z0-9]', '', text.lower())
 
-# -------- TIME CHECK --------
+# ---------------- TIME CHECK ----------------
 def is_time(line):
-    return re.match(r'^\d{1,2}:\d{2}\s?(AM|PM|am|pm)?$', line.strip())
+    return bool(re.match(r'^\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)?$', line.strip()))
 
-# -------- PARSER (FIXED) --------
+# ---------------- SAFE PARSER (FIXED BUG) ----------------
 def parse_raw(lines):
 
     extracted = {}
@@ -29,43 +40,55 @@ def parse_raw(lines):
 
         line = line.strip()
 
+        if not line:
+            continue
+
         # ignore noise
-        if any(x in line.lower() for x in ["panel", "command", "armed", "disarmed"]):
+        if any(x in line.lower() for x in ["panel", "command", "armed", "disarmed", "mobile"]):
             continue
 
-        # store name detection (ONLY if NOT time)
-        if not is_time(line):
-            current_store = line
+        # if time line
+        if is_time(line):
+            if current_store:
+                extracted[current_store] = line
+                current_store = None   # 🔥 CRITICAL FIX (no carryover bug)
             continue
 
-        # time line
-        if is_time(line) and current_store:
-            extracted[current_store] = line
-            current_store = None   # 🔥 IMPORTANT FIX (prevents wrong carryover)
+        # store line
+        current_store = line
 
     return extracted
 
-# -------- MATCH --------
-def match(store, raw_dict):
+# ---------------- MATCH FUNCTION (SAFE) ----------------
+def match_store(store_name, raw_dict):
 
-    s = clean(store)
+    store_clean = clean(store_name)
 
-    for r, t in raw_dict.items():
+    for raw_store, time in raw_dict.items():
 
-        if s == clean(r):
-            return t
+        raw_clean = clean(raw_store)
 
-        if s in clean(r) or clean(r) in s:
-            return t
+        # exact match
+        if store_clean == raw_clean:
+            return time
+
+        # partial safe match
+        if store_clean in raw_clean or raw_clean in store_clean:
+            return time
 
     return ""
 
-# -------- UI --------
-st.title("📊 Store Dashboard")
+# ---------------- UI ----------------
+st.title("📊 Store Time Dashboard (Stable Version)")
 
-raw_data = st.text_area("Paste Raw Data", height=300)
+raw_data = st.text_area("📥 Paste Raw Data", height=300)
 
-if st.button("Generate"):
+# ---------------- RUN ----------------
+if st.button("🚀 Generate Report"):
+
+    if not raw_data:
+        st.warning("Please paste raw data")
+        st.stop()
 
     lines = raw_data.splitlines()
 
@@ -73,19 +96,26 @@ if st.button("Generate"):
 
     results = []
 
-    for store, sid in STORE_MAP.items():
+    for store, store_id in STORE_MAP.items():
 
-        time_value = match(store, extracted)
+        time_value = match_store(store, extracted)
 
         results.append({
-            "Store": store,
-            "Store ID": sid,
+            "Store Name": store,
+            "Store ID": store_id,
             "Time": time_value if time_value else "❌ Missing"
         })
 
     df = pd.DataFrame(results)
 
-    st.metric("Total", len(df))
-    st.metric("Matched", len(df[df["Time"] != "❌ Missing"]))
+    st.metric("Total Stores", len(df))
+    st.metric("Matched Stores", len(df[df["Time"] != "❌ Missing"]))
 
     st.dataframe(df, use_container_width=True)
+
+    st.download_button(
+        "⬇ Download CSV",
+        df.to_csv(index=False).encode("utf-8"),
+        "store_report.csv",
+        "text/csv"
+    )
