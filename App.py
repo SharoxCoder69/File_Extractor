@@ -1,23 +1,22 @@
 import streamlit as st
 import pandas as pd
 import re
-import time
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------- PAGE ----------------
 st.set_page_config(
     page_title="TWG Store Intelligence",
     page_icon="📊",
     layout="wide"
 )
 
-# ---------------- LOGIN USERS ----------------
+# ---------------- USERS ----------------
 USERS = {
     "admin": "1234",
     "twg": "password",
     "manager": "admin123"
 }
 
-# ---------------- STORE MAP (YOUR DATA) ----------------
+# ---------------- STORE MAP ----------------
 STORE_MAP = {
     "VICTORY DR GA T32": "TWGGA32",
     "MILGEN GA T34": "TWGGA34",
@@ -99,25 +98,9 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user = ""
 
-# ---------------- LOGIN PAGE ----------------
+# ---------------- LOGIN ----------------
 def login_page():
-
-    st.markdown("""
-    <style>
-    .box {
-        width: 380px;
-        margin: auto;
-        margin-top: 120px;
-        padding: 30px;
-        border-radius: 18px;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        text-align: center;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<div class='box'><h2>🔐 TWG Login</h2><p>Enter credentials</p></div>", unsafe_allow_html=True)
+    st.title("🔐 TWG Login")
 
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
@@ -143,7 +126,7 @@ if st.sidebar.button("🚪 Logout"):
     st.session_state.user = ""
     st.rerun()
 
-# ---------------- UI STYLE ----------------
+# ---------------- STYLE ----------------
 st.markdown("""
 <style>
 .stApp {
@@ -169,16 +152,17 @@ st.markdown(f"Welcome **{st.session_state.user}**")
 st.markdown("---")
 
 # ---------------- INPUTS ----------------
-master_list = st.text_area("📌 Master Store List (optional)", height=150)
-raw_data = st.text_area("📥 Raw Data", height=200)
+raw_data = st.text_area("📥 Raw Data", height=250)
 
-master_lines = [m.strip() for m in master_list.splitlines() if m.strip()]
+# ---------------- NORMALIZE FUNCTION (FIX) ----------------
+def normalize(text):
+    return re.sub(r'[^a-z0-9]', '', text.lower())
 
 # ---------------- PROCESS ----------------
 if st.button("🚀 Generate Report"):
 
     if not raw_data:
-        st.warning("Please add raw data")
+        st.warning("Add raw data")
         st.stop()
 
     raw_lines = [r.strip() for r in raw_data.splitlines() if r.strip()]
@@ -199,12 +183,15 @@ if st.button("🚀 Generate Report"):
 
     results = []
 
+    # 🔥 SMART MATCHING FIX
     for store_name, store_id in STORE_MAP.items():
 
+        store_clean = normalize(store_name)
         time_value = ""
 
         for raw_store, t in extracted.items():
-            if store_name.lower() in raw_store.lower():
+
+            if store_clean in normalize(raw_store):
                 time_value = t
                 break
 
