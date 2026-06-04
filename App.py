@@ -5,7 +5,7 @@ from rapidfuzz import fuzz
 
 # ---------------- PAGE ----------------
 st.set_page_config(
-    page_title="TWG Intelligence Dashboard",
+    page_title="TWG Control Center",
     page_icon="📊",
     layout="wide"
 )
@@ -19,73 +19,58 @@ USERS = {
 
 # ---------------- STORE MAP ----------------
 STORE_MAP = {
-    "VICTORY DR GA T32": "TWGGA32",
-    "MILGEN GA T34": "TWGGA34",
-    "WOODRUFF GA T33": "TWGGA33",
-    "W FRANKLIN T42": "TWGNC41",
-    "CHERRY T42": "TWGSC42",
-    "LANCASTER SC T29": "TWGSC29",
-    "CANNON": "TWGNC50",
     "HICKORY": "TWGNC52",
-    "HUNTERSVILLE": "TWGNC54",
-    "LINCOLNTON NC T30": "TWGNC30",
     "MOORESVILLE": "TWGNC53",
-    "MORGANTON": "TWGNC55",
-    "ROXIE ST": "TWGNC51",
+    "CANNON": "TWGNC50",
     "SALISBURY NC T17": "TWGNC17",
-    "OWEN NC T36": "TWGNC36",
-    "BONANZA NC T37": "TWGNC37",
-    "HOPE MILLS T39": "TWGNC39",
-    "BRAGG BLVD": "TWGNC56",
-    "LUMBERTON NC": "TWGNC57"
+    "GREENSBORO NC T7": "TWGNC07",
+    "LEXINGTON NC T9": "TWGNC09",
+    "ASHEBORO NC T10": "TWGNC10"
 }
 
-# ---------------- SESSION ----------------
+# ---------------- LOGIN STATE ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user = ""
 
-# ---------------- LOGIN PAGE ----------------
-def login_page():
-
+# ---------------- LOGIN ----------------
+def login():
     st.markdown("""
     <style>
-    .login-title{
+    .login-box{
+        width: 420px;
+        margin: auto;
+        padding: 30px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 20px;
+        backdrop-filter: blur(15px);
+        box-shadow: 0 0 40px rgba(0,255,200,0.2);
         text-align:center;
-        font-size:40px;
+    }
+
+    .title{
+        font-size:32px;
         font-weight:800;
         color:#00ffcc;
-        margin-bottom:30px;
-        text-shadow:0 0 20px #00ffcc;
-    }
-
-    .stApp{
-        background: radial-gradient(circle at top,#0f172a,#020617);
-    }
-
-    div[data-testid="stTextInput"] input{
-        border-radius:12px;
-        padding:10px;
+        margin-bottom:20px;
     }
 
     div.stButton > button {
         width:100%;
-        background: linear-gradient(90deg,#00ffcc,#2563eb);
+        background: linear-gradient(90deg,#00ffcc,#3b82f6);
         color:black;
         font-weight:bold;
         border-radius:12px;
         padding:10px;
-        transition:0.3s;
     }
 
-    div.stButton > button:hover{
-        transform:scale(1.03);
-        box-shadow:0 0 20px #00ffcc;
+    .stApp{
+        background: radial-gradient(circle at top,#050816,#020617);
     }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div class='login-title'>🔐 TWG Login Portal</div>", unsafe_allow_html=True)
+    st.markdown("<div class='login-box'><div class='title'>TWG Login</div>", unsafe_allow_html=True)
 
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
@@ -96,126 +81,120 @@ def login_page():
             st.session_state.user = u
             st.rerun()
         else:
-            st.error("Invalid credentials")
+            st.error("Invalid login")
 
+    st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
 if not st.session_state.logged_in:
-    login_page()
+    login()
 
-# ---------------- LOGOUT ----------------
-st.sidebar.markdown(f"👤 **User:** {st.session_state.user}")
+# ---------------- SIDEBAR ----------------
+with st.sidebar:
+    st.markdown("## ⚙ Control Panel")
+    st.write(f"👤 {st.session_state.user}")
 
-if st.sidebar.button("Logout"):
-    st.session_state.logged_in = False
-    st.session_state.user = ""
-    st.rerun()
+    if st.button("🚪 Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
 
-# ---------------- MAIN UI STYLE ----------------
+# ---------------- FULL UI STYLE ----------------
 st.markdown("""
 <style>
 
-/* Background */
+/* Main background */
 .stApp {
-    background: radial-gradient(circle at top,#0b1220,#050814);
-    color:white;
+    background: radial-gradient(circle at top,#0b1220,#020617);
+    color: white;
 }
 
-/* Title */
-.main-title{
-    text-align:center;
-    font-size:38px;
-    font-weight:800;
-    color:#00ffcc;
-    text-shadow:0 0 20px #00ffcc;
-    margin-bottom:10px;
+/* Header */
+.header {
+    font-size: 40px;
+    font-weight: 900;
+    text-align: center;
+    background: linear-gradient(90deg,#00ffcc,#3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
 }
 
-/* Card effect */
-.block-container{
-    padding-top:2rem;
+/* Glass container */
+.block {
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 25px rgba(0,255,200,0.1);
 }
 
 /* Textarea */
-textarea{
-    border-radius:14px !important;
-    border:1px solid #00ffcc !important;
-    background: rgba(255,255,255,0.03) !important;
-    color:white !important;
+textarea {
+    border-radius: 14px !important;
+    border: 1px solid #00ffcc !important;
 }
 
 /* Button */
-div.stButton > button{
+div.stButton > button {
     background: linear-gradient(90deg,#00ffcc,#3b82f6);
-    color:black;
-    font-weight:bold;
-    border-radius:12px;
-    padding:10px;
-    transition:0.3s;
+    color: black;
+    font-weight: bold;
+    border-radius: 12px;
+    transition: 0.3s;
 }
 
-div.stButton > button:hover{
-    transform:scale(1.05);
-    box-shadow:0 0 25px #00ffcc;
+div.stButton > button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #00ffcc;
 }
 
 /* Metrics cards */
-div[data-testid="metric-container"]{
-    background: rgba(255,255,255,0.05);
-    border-radius:16px;
-    padding:15px;
-    box-shadow:0 0 15px rgba(0,255,204,0.15);
+div[data-testid="metric-container"] {
+    background: rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: 0 0 15px rgba(0,255,200,0.15);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- TITLE ----------------
-st.markdown("<div class='main-title'>📊 TWG Intelligence Dashboard</div>", unsafe_allow_html=True)
+# ---------------- HEADER ----------------
+st.markdown("<div class='header'>📊 TWG CONTROL CENTER</div>", unsafe_allow_html=True)
 
-# ---------------- INPUT ----------------
-raw_data = st.text_area("📥 Paste Raw Data Here", height=250)
+# ---------------- INPUT CARD ----------------
+st.markdown("<div class='block'>", unsafe_allow_html=True)
+raw_data = st.text_area("📥 Paste Raw Data", height=250)
+st.markdown("</div>", unsafe_allow_html=True)
 
-# ---------------- CLEAN ----------------
-def normalize(text):
-    return re.sub(r'[^a-z0-9]', '', text.lower())
+# ---------------- FUNCTIONS ----------------
+def normalize(x):
+    return re.sub(r'[^a-z0-9]', '', x.lower())
 
-# ---------------- MATCH ----------------
-def best_match(store_name, raw_dict):
+def match(store, data):
+    s = normalize(store)
+    best = ""
+    score_max = 0
 
-    best_score = 0
-    best_time = ""
-
-    s = normalize(store_name)
-
-    for r, t in raw_dict.items():
-
+    for r, t in data.items():
         score = fuzz.partial_ratio(s, normalize(r))
+        if score > score_max and score >= 70:
+            score_max = score
+            best = t
 
-        if score > best_score and score >= 70:
-            best_score = score
-            best_time = t
-
-    return best_time
+    return best
 
 # ---------------- PROCESS ----------------
 if st.button("🚀 Generate Report"):
-
-    if not raw_data:
-        st.warning("Please paste raw data")
-        st.stop()
 
     lines = raw_data.splitlines()
 
     extracted = {}
     current = None
-
     time_pattern = r'^\d{1,2}:\d{2}\s?(AM|PM|am|pm)?$'
 
     for line in lines:
-
         line = line.strip()
-
         if not line:
             continue
 
@@ -229,25 +208,26 @@ if st.button("🚀 Generate Report"):
     results = []
 
     for store, sid in STORE_MAP.items():
-
-        time_value = best_match(store, extracted)
-
+        t = match(store, extracted)
         results.append({
-            "Store Name": store,
-            "Store ID": sid,
-            "Time": time_value if time_value else "❌ Missing"
+            "Store": store,
+            "ID": sid,
+            "Time": t if t else "❌ Missing"
         })
 
     df = pd.DataFrame(results)
 
-    col1, col2 = st.columns(2)
+    # ---------------- METRICS ----------------
+    col1, col2, col3 = st.columns(3)
     col1.metric("Total Stores", len(df))
     col2.metric("Matched", len(df[df["Time"] != "❌ Missing"]))
+    col3.metric("Missing", len(df[df["Time"] == "❌ Missing"]))
 
+    st.markdown("### 📋 Results")
     st.dataframe(df, use_container_width=True)
 
     st.download_button(
-        "⬇ Download CSV",
+        "⬇ Download Report",
         df.to_csv(index=False).encode(),
         "twg_report.csv",
         "text/csv"
