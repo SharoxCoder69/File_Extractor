@@ -1,4 +1,3 @@
-streamlit==1.36.0
-pandas==2.2.2
-rapidfuzz==3.9.6
-fix requirements for streamlit cloud
+streamlit
+pandas
+rapidfuzz
