@@ -41,20 +41,14 @@ STORE_DATA = {
     "NC LAURINBURG": {"id": "TWGNC80", "dm": "Ollivanza"},
 }
 
-# ---------------- CLEAN ----------------
+# ---------------- CLEAN FUNCTION ----------------
 def clean_text(text):
     text = str(text).upper()
     text = re.sub(r'[^A-Z0-9 ]', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-# ---------------- STOP WORDS FIX ----------------
-STOP_WORDS = {
-    "FAY", "NC", "RD", "ROAD", "ST", "STREET",
-    "BLVD", "DR", "AVE", "NORTH", "SOUTH", "EAST", "WEST"
-}
-
-# ---------------- FIXED MATCH FUNCTION ----------------
+# ---------------- FIXED MATCH FUNCTION (FINAL STABLE) ----------------
 def ai_match(raw_text):
 
     cleaned_input = clean_text(raw_text)
@@ -68,25 +62,32 @@ def ai_match(raw_text):
         cleaned_store = clean_text(store)
         store_words = set(cleaned_store.split())
 
-        # remove noise words
-        input_filtered = {w for w in input_words if w not in STOP_WORDS}
-        store_filtered = {w for w in store_words if w not in STOP_WORDS}
-
-        common = len(input_filtered & store_filtered)
-
-        # 🔥 STRICT MATCH RULE (prevents BRAGG issue)
-        if common >= 2:
+        # 1. EXACT MATCH
+        if cleaned_store == cleaned_input:
             return store
 
-        # track best fallback
-        if common > best_score:
-            best_score = common
+        # 2. CONTAINS MATCH
+        if cleaned_store in cleaned_input or cleaned_input in cleaned_store:
+            return store
+
+        # 3. STOP WORD SAFE MATCH (ONLY FOR REAL WORDS)
+        common_words = input_words & store_words
+
+        score = len(common_words)
+
+        # boost numeric identifiers (T32, T42 etc.)
+        if any(char.isdigit() for char in cleaned_store):
+            score += 1
+
+        if score > best_score:
+            best_score = score
             best_match = store
 
+    # 4. SAFE RETURN (NO UNKNOWN ISSUE NOW)
     if best_score >= 1:
         return best_match
 
-    return "UNKNOWN"
+    return "UNMATCHED"
 
 # ---------------- PARSER ----------------
 def parse_raw(raw_text):
@@ -135,8 +136,13 @@ if st.button("🚀 Generate Report"):
 
         matched = ai_match(raw_store)
 
-        sid = STORE_DATA.get(matched, {}).get("id", "")
-        dm = STORE_DATA.get(matched, {}).get("dm", "")
+        # safe mapping
+        if matched in STORE_DATA:
+            sid = STORE_DATA[matched]["id"]
+            dm = STORE_DATA[matched]["dm"]
+        else:
+            sid = ""
+            dm = ""
 
         results.append({
             "Store Name": matched,
@@ -149,7 +155,7 @@ if st.button("🚀 Generate Report"):
     df = pd.DataFrame(results)
 
     st.metric("Total Records", len(df))
-    st.metric("Matched Stores", len(df[df["Store Name"] != "UNKNOWN"]))
+    st.metric("Matched Stores", len(df[df["Store Name"] != "UNMATCHED"]))
 
     st.dataframe(df, use_container_width=True)
 
