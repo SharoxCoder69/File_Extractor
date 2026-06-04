@@ -195,6 +195,6 @@ if st.button("🚀 Process Data"):
 
 # ---------------- FOOTER ----------------
 st.markdown(
-    "<div class='founder-box'>👑 Founder: Sharox Javaid</div>",
+    "<div class='founder-box'>👑 Founder: noor ul ain</div>",
     unsafe_allow_html=True
 )
