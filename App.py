@@ -41,17 +41,24 @@ STORE_DATA = {
     "NC LAURINBURG": {"id": "TWGNC80", "dm": "Ollivanza"},
 }
 
-# ---------------- CLEAN FUNCTION ----------------
+# ---------------- CLEAN ----------------
 def clean_text(text):
     text = str(text).upper()
     text = re.sub(r'[^A-Z0-9 ]', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-# ---------------- FIXED MATCH FUNCTION (NO NONE ISSUE) ----------------
+# ---------------- STOP WORDS FIX ----------------
+STOP_WORDS = {
+    "FAY", "NC", "RD", "ROAD", "ST", "STREET",
+    "BLVD", "DR", "AVE", "NORTH", "SOUTH", "EAST", "WEST"
+}
+
+# ---------------- FIXED MATCH FUNCTION ----------------
 def ai_match(raw_text):
 
     cleaned_input = clean_text(raw_text)
+    input_words = set(cleaned_input.split())
 
     best_match = None
     best_score = 0
@@ -59,26 +66,24 @@ def ai_match(raw_text):
     for store in STORE_DATA.keys():
 
         cleaned_store = clean_text(store)
-
-        # 1. CONTAINS MATCH (MOST ACCURATE)
-        if cleaned_store in cleaned_input:
-            return store
-
-        if cleaned_input in cleaned_store:
-            return store
-
-        # 2. WORD MATCH SCORE
         store_words = set(cleaned_store.split())
-        input_words = set(cleaned_input.split())
 
-        common = len(store_words & input_words)
+        # remove noise words
+        input_filtered = {w for w in input_words if w not in STOP_WORDS}
+        store_filtered = {w for w in store_words if w not in STOP_WORDS}
 
+        common = len(input_filtered & store_filtered)
+
+        # 🔥 STRICT MATCH RULE (prevents BRAGG issue)
+        if common >= 2:
+            return store
+
+        # track best fallback
         if common > best_score:
             best_score = common
             best_match = store
 
-    # 3. SAFE RETURN (NO NONE)
-    if best_match and best_score > 0:
+    if best_score >= 1:
         return best_match
 
     return "UNKNOWN"
