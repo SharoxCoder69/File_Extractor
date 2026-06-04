@@ -5,98 +5,105 @@ import time
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="Store Time Dashboard",
+    page_title="TOTALLYWIRELESSGROUP Dashboard",
     page_icon="📊",
     layout="wide"
 )
 
-# ---------------- LOADING ----------------
-with st.spinner("Loading TOTALLYWIRELESSGROUP Dashboard... 🚀"):
-    time.sleep(5.0)
+# ---------------- MODERN CSS ----------------
+st.markdown("""
+<style>
 
-# ---------------- BACKGROUND WATERMARK ----------------
-st.markdown(
-    """
-    <style>
+/* Background */
+.stApp {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+}
 
-    .watermark {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-20deg);
-        font-size: 80px;
-        font-weight: 900;
-        color: rgba(0, 255, 200, 0.06);
-        z-index: -1;
-        white-space: nowrap;
-        animation: floatText 6s ease-in-out infinite;
-        pointer-events: none;
-    }
+/* Title */
+.main-title {
+    text-align: center;
+    font-size: 42px;
+    font-weight: 900;
+    background: linear-gradient(90deg,#00f5d4,#00bbf9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0px;
+    animation: glow 2s infinite alternate;
+}
 
-    @keyframes floatText {
-        0% {transform: translate(-50%, -50%) rotate(-20deg) scale(1);}
-        50% {transform: translate(-50%, -52%) rotate(-20deg) scale(1.05);}
-        100% {transform: translate(-50%, -50%) rotate(-20deg) scale(1);}
-    }
+@keyframes glow {
+    from {filter: drop-shadow(0 0 5px #00f5d4);}
+    to {filter: drop-shadow(0 0 20px #00bbf9);}
+}
 
-    /* TITLE */
-    .main-title {
-        text-align: center;
-        font-size: 40px;
-        font-weight: bold;
-        color: #4CAF50;
-        animation: pulse 1.8s infinite;
-    }
+/* Subtitle */
+.sub-title {
+    text-align: center;
+    color: #cbd5e1;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
 
-    @keyframes pulse {
-        0% {transform: scale(1);}
-        50% {transform: scale(1.05);}
-        100% {transform: scale(1);}
-    }
+/* Text Areas */
+textarea {
+    border-radius: 12px !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    background: rgba(255,255,255,0.05) !important;
+    color: white !important;
+}
 
-    .sub-title {
-        text-align: center;
-        color: gray;
-        margin-bottom: 25px;
-    }
+/* Button */
+.stButton > button {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg,#00f5d4,#00bbf9);
+    color: black;
+    transition: 0.3s;
+}
 
-    /* FOOTER (FOUNDERS BOX) */
-    .founder-box {
-        position: fixed;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.6);
-        padding: 6px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        color: #00ffcc;
-        font-weight: 500;
-        box-shadow: 0 0 8px rgba(0,255,200,0.3);
-        animation: glow 2s infinite;
-        z-index: 999;
-    }
+.stButton > button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0,245,212,0.6);
+}
 
-    @keyframes glow {
-        0% {box-shadow: 0 0 5px #00ffcc;}
-        50% {box-shadow: 0 0 15px #00ffcc;}
-        100% {box-shadow: 0 0 5px #00ffcc;}
-    }
+/* Metrics cards */
+[data-testid="stMetric"] {
+    background: rgba(255,255,255,0.08);
+    padding: 15px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
 
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+/* Table */
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+    overflow: hidden;
+}
 
-# ---------------- WATERMARK ----------------
-st.markdown(
-    "<div class='watermark'>TOTALLYWIRELESSGROUP</div>",
-    unsafe_allow_html=True
-)
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #00f5d4;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------- HEADER ----------------
-st.markdown("<div class='main-title'>📊 Store Time Dashboard</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-title'>Smart Store & Time Extraction System</div>", unsafe_allow_html=True)
+st.markdown("""
+<div class="main-title">🚀 TOTALLYWIRELESSGROUP</div>
+<div class="sub-title">Smart Store Time Extraction Dashboard</div>
+""", unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -109,31 +116,30 @@ with col1:
 with col2:
     raw_data = st.text_area("📥 Raw Data", height=300)
 
-# ---------------- PROCESS ----------------
+# ---------------- PROCESS BUTTON ----------------
 if st.button("🚀 Process Data"):
 
     if not master_list or not raw_data:
         st.warning("Please fill both inputs")
         st.stop()
 
+    # Loading animation
+    progress = st.progress(0)
+    for i in range(100):
+        time.sleep(0.01)
+        progress.progress(i + 1)
+
+    # ---------------- CLEAN DATA ----------------
     master_stores = [s.strip() for s in master_list.splitlines() if s.strip()]
     lines = [l.strip() for l in raw_data.splitlines() if l.strip()]
 
     time_pattern = r'^\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)$'
 
-    ignore_words = [
-        "Panel",
-        "Partition",
-        "Disarmed by",
-        "Armed Away by",
-        "[Mobile]",
-        "Command:"
-    ]
+    ignore_words = ["Panel", "Partition", "Disarmed", "Armed", "[Mobile]", "Command:"]
 
     extracted = {}
     current_store = None
 
-    # ---------------- EXTRACT ----------------
     for line in lines:
 
         if any(w.lower() in line.lower() for w in ignore_words):
@@ -146,7 +152,7 @@ if st.button("🚀 Process Data"):
 
         current_store = line
 
-    # ---------------- MATCH ----------------
+    # ---------------- MATCHING ----------------
     results = []
 
     for store in master_stores:
@@ -154,10 +160,9 @@ if st.button("🚀 Process Data"):
         time_value = ""
 
         for raw_store, t in extracted.items():
-
             words = raw_store.replace(".", "").split()
 
-            if any(w in store.upper() for w in words if len(w) > 2):
+            if any(w.upper() in store.upper() for w in words if len(w) > 2):
                 time_value = t
                 break
 
@@ -194,7 +199,6 @@ if st.button("🚀 Process Data"):
     )
 
 # ---------------- FOOTER ----------------
-st.markdown(
-    "<div class='founder-box'>👑 Founder: noor ul ain</div>",
-    unsafe_allow_html=True
-)
+st.markdown("""
+<div class="footer">👑 Developed for TOTALLYWIRELESSGROUP</div>
+""", unsafe_allow_html=True)
