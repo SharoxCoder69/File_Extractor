@@ -5,95 +5,84 @@ import time
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="TOTALLYWIRELESSGROUP Dashboard",
+    page_title="Store Time Dashboard",
     page_icon="📊",
     layout="wide"
 )
 
-# ---------------- MODERN CSS ----------------
+# ---------------- MODERN CLEAN UI ----------------
 st.markdown("""
 <style>
 
 /* Background */
 .stApp {
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    color: white;
+    background: linear-gradient(135deg, #0b1220, #111827);
+    color: #e5e7eb;
 }
 
-/* Title */
+/* MAIN TITLE (SOFT + PROFESSIONAL) */
 .main-title {
     text-align: center;
-    font-size: 42px;
-    font-weight: 900;
-    background: linear-gradient(90deg,#00f5d4,#00bbf9);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 0px;
-    animation: glow 2s infinite alternate;
+    font-size: 36px;
+    font-weight: 700;
+    color: #e5e7eb;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
 }
 
-@keyframes glow {
-    from {filter: drop-shadow(0 0 5px #00f5d4);}
-    to {filter: drop-shadow(0 0 20px #00bbf9);}
-}
-
-/* Subtitle */
+/* SUBTITLE */
 .sub-title {
     text-align: center;
-    color: #cbd5e1;
-    font-size: 16px;
-    margin-bottom: 20px;
+    color: #9ca3af;
+    font-size: 14px;
+    margin-bottom: 25px;
 }
 
-/* Text Areas */
+/* TEXT AREA */
 textarea {
     border-radius: 12px !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
-    background: rgba(255,255,255,0.05) !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
     color: white !important;
 }
 
-/* Button */
+/* BUTTON (MODERN SOFT GRADIENT) */
 .stButton > button {
     width: 100%;
     padding: 14px;
-    font-size: 18px;
-    font-weight: bold;
     border-radius: 12px;
     border: none;
-    background: linear-gradient(135deg,#00f5d4,#00bbf9);
-    color: black;
+    font-weight: 600;
+    background: linear-gradient(135deg, #2563eb, #06b6d4);
+    color: white;
     transition: 0.3s;
 }
 
 .stButton > button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(0,245,212,0.6);
+    transform: scale(1.03);
+    box-shadow: 0 10px 20px rgba(37,99,235,0.3);
 }
 
-/* Metrics cards */
+/* METRICS CARDS */
 [data-testid="stMetric"] {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
     padding: 15px;
-    border-radius: 15px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.06);
 }
 
-/* Table */
+/* TABLE */
 [data-testid="stDataFrame"] {
     border-radius: 12px;
     overflow: hidden;
 }
 
-/* Footer */
+/* FOOTER */
 .footer {
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+    text-align: center;
     font-size: 12px;
-    color: #00f5d4;
+    color: #6b7280;
+    margin-top: 20px;
 }
 
 </style>
@@ -101,8 +90,8 @@ textarea {
 
 # ---------------- HEADER ----------------
 st.markdown("""
-<div class="main-title">🚀 TOTALLYWIRELESSGROUP</div>
-<div class="sub-title">Smart Store Time Extraction Dashboard</div>
+<div class="main-title">Store Time Dashboard</div>
+<div class="sub-title">TOTALLYWIRELESSGROUP • Smart Extraction System</div>
 """, unsafe_allow_html=True)
 
 st.markdown("---")
@@ -120,13 +109,13 @@ with col2:
 if st.button("🚀 Process Data"):
 
     if not master_list or not raw_data:
-        st.warning("Please fill both inputs")
+        st.warning("Please fill both fields")
         st.stop()
 
-    # Loading animation
+    # Progress animation
     progress = st.progress(0)
     for i in range(100):
-        time.sleep(0.01)
+        time.sleep(0.005)
         progress.progress(i + 1)
 
     # ---------------- CLEAN DATA ----------------
@@ -142,7 +131,7 @@ if st.button("🚀 Process Data"):
 
     for line in lines:
 
-        if any(w.lower() in line.lower() for w in ignore_words):
+        if any(word.lower() in line.lower() for word in ignore_words):
             continue
 
         if re.match(time_pattern, line):
@@ -179,7 +168,7 @@ if st.button("🚀 Process Data"):
     missing = total - matched
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("📦 Total Stores", total)
+    col1.metric("📦 Total", total)
     col2.metric("✅ Matched", matched)
     col3.metric("❌ Missing", missing)
 
@@ -200,5 +189,7 @@ if st.button("🚀 Process Data"):
 
 # ---------------- FOOTER ----------------
 st.markdown("""
-<div class="footer">👑 Developed for TOTALLYWIRELESSGROUP</div>
+<div class="footer">
+Built for TOTALLYWIRELESSGROUP
+</div>
 """, unsafe_allow_html=True)
