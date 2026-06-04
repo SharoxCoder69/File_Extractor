@@ -5,12 +5,12 @@ from rapidfuzz import fuzz
 
 # ---------------- PAGE ----------------
 st.set_page_config(
-    page_title="TWG Intelligence Dashboard",
+    page_title="TWG Smart Dashboard",
     page_icon="📊",
     layout="wide"
 )
 
-# ---------------- STORE MASTER DATABASE ----------------
+# ---------------- STORE DATABASE ----------------
 STORE_DATA = {
     "VICTORY DR GA T32": {"id": "TWGGA32", "dm": "-"},
     "MILGEN GA T34": {"id": "TWGGA34", "dm": "-"},
@@ -87,61 +87,67 @@ STORE_DATA = {
     "WEST MERCURY BLVD 2": {"id": "TWGVA58", "dm": "Erika"}
 }
 
-# ---------------- MATCH ----------------
+# ---------------- MATCH STORE ----------------
 def normalize(t):
     return re.sub(r'[^a-z0-9]', '', t.lower())
 
-def find_store(store_name):
+def find_store(text):
     best = None
-    best_score = 0
+    score_best = 0
 
-    for s in STORE_DATA:
-        score = fuzz.partial_ratio(normalize(store_name), normalize(s))
-        if score > best_score and score >= 70:
-            best_score = score
-            best = s
+    for store in STORE_DATA:
+        score = fuzz.partial_ratio(normalize(text), normalize(store))
+        if score > score_best and score >= 70:
+            score_best = score
+            best = store
 
     return best
 
-# ---------------- TIME CHECK ----------------
-def is_time(line):
-    return bool(re.match(r'^\d{1,2}:\d{2}\s?(AM|PM|am|pm)?$', line.strip()))
+# ---------------- SMART PARSER ----------------
+def parse_raw(raw_text):
+    data = {}
 
-# ---------------- UI ----------------
-st.title("📊 TWG MASTER INTELLIGENCE DASHBOARD")
-
-raw_data = st.text_area("📥 Paste Raw Data", height=250)
-
-# ---------------- PROCESS ----------------
-if st.button("🚀 Generate Report"):
-
-    lines = raw_data.splitlines()
-
-    extracted = {}
-    current = None
+    lines = raw_text.splitlines()
 
     for line in lines:
         line = line.strip()
         if not line:
             continue
 
-        if is_time(line):
-            if current:
-                extracted[current] = line
-            continue
+        # extract time anywhere in line
+        time_match = re.search(r'\d{1,2}:\d{2}\s?(AM|PM|am|pm)?', line)
 
-        current = line
+        if time_match:
+            time = time_match.group()
+
+            store = re.sub(r'\d{1,2}:\d{2}\s?(AM|PM|am|pm)?', '', line)
+            store = re.sub(r'[-|]', '', store).strip()
+
+            if store:
+                data[store] = time
+
+    return data
+
+# ---------------- UI ----------------
+st.title("📊 TWG SMART MASTER DASHBOARD")
+
+raw_data = st.text_area("📥 Paste Raw Data", height=250)
+
+# ---------------- PROCESS ----------------
+if st.button("🚀 Generate Report"):
+
+    extracted = parse_raw(raw_data)
 
     results = []
 
     for store in STORE_DATA:
 
-        matched_store = find_store(store)
+        matched = find_store(store)
 
-        if matched_store:
-            time_value = extracted.get(matched_store, "")
-            sid = STORE_DATA[matched_store]["id"]
-            dm = STORE_DATA[matched_store]["dm"]
+        if matched:
+            time_value = extracted.get(matched, "")
+            sid = STORE_DATA[matched]["id"]
+            dm = STORE_DATA[matched]["dm"]
         else:
             time_value = ""
             sid = ""
@@ -166,6 +172,6 @@ if st.button("🚀 Generate Report"):
     st.download_button(
         "⬇ Download CSV",
         df.to_csv(index=False).encode(),
-        "twg_master_report.csv",
+        "twg_report.csv",
         "text/csv"
     )
