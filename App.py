@@ -3,18 +3,95 @@ import pandas as pd
 import re
 import time
 
-# ---------------- PAGE ----------------
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="Store Intelligence System",
+    page_title="TWG Store Intelligence",
     page_icon="📊",
     layout="wide"
 )
 
-# ---------------- USERS ----------------
+# ---------------- LOGIN USERS ----------------
 USERS = {
     "admin": "1234",
     "twg": "password",
     "manager": "admin123"
+}
+
+# ---------------- STORE MAP (YOUR DATA) ----------------
+STORE_MAP = {
+    "VICTORY DR GA T32": "TWGGA32",
+    "MILGEN GA T34": "TWGGA34",
+    "WOODRUFF GA T33": "TWGGA33",
+    "W FRANKLIN T42": "TWGNC41",
+    "CHERRY T42": "TWGSC42",
+    "LANCASTER SC T29": "TWGSC29",
+    "CANNON": "TWGNC50",
+    "HICKORY": "TWGNC52",
+    "HUNTERSVILLE": "TWGNC54",
+    "LINCOLNTON NC T30": "TWGNC30",
+    "MOORESVILLE": "TWGNC53",
+    "MORGANTON": "TWGNC55",
+    "ROXIE ST": "TWGNC51",
+    "SALISBURY NC T17": "TWGNC17",
+    "OWEN NC T36": "TWGNC36",
+    "BONANZA NC T37": "TWGNC37",
+    "HOPE MILLS T39": "TWGNC39",
+    "BRAGG BLVD": "TWGNC56",
+    "LUMBERTON NC": "TWGNC57",
+    "GOOD MIDDLING": "TWGNC74",
+    "N EASTERN BLVD": "TWGNC75",
+    "6916 CLIFFDALE RD": "TWGNC76",
+    "NC FAY DUNN": "TWGNC77",
+    "3620 RAMSEY ST": "TWGNC78",
+    "5135 RAEFORD RD": "TWGNC79",
+    "NC LAURINBURG": "TWGNC80",
+    "AVONDALE NC T38": "TWGNC38",
+    "GATE CITY NC T3": "TWGNC03",
+    "COLISEUM NC T11": "TWGNC11",
+    "EAST CONE NC T12": "TWGNC12",
+    "EAST MARKET NC T1": "TWGNC01",
+    "WEST MARKET NC T2": "TWGNC02",
+    "RAMADA NC T13": "TWGNC13",
+    "ASHEBORO NC T10": "TWGNC10",
+    "EASTCHESTER NC T8": "TWGNC08",
+    "GREENSBORO NC T7": "TWGNC07",
+    "LEXINGTON NC T9": "TWGNC09",
+    "THOMASVILLE NC T6": "TWGNC06",
+    "HANES MALL NC T5": "TWGNC05",
+    "WALKERTOWN NC T4": "TWGNC04",
+    "WAUGHTOWN NC T14": "TWGNC14",
+    "UNIVERSITY NC T16": "TWGNC16",
+    "REYNOLDA NC T15": "TWGNC15",
+    "MONITOR SC T21": "TWGSC21",
+    "SHOCKLEY SC T22": "TWGSC22",
+    "ANDERSON MAIN ST": "TWGSC66",
+    "CEDAR LANE SC T18": "TWGSC18",
+    "EASLEY SC T20": "TWGSC20",
+    "LAURENS SC T31": "TWGSC31",
+    "VA73 LYNCHBURG": "TWGVA73",
+    "S LABURNUM T48": "TWGVA48",
+    "STAPLES MILL": "TWGVA67",
+    "NINE MILE": "TWGVA65",
+    "7223 HULL ST T45": "TWGVA45",
+    "CHESTER VA": "TWGVA64",
+    "VA68 CHAMABERLAYNE": "TWGVA68",
+    "VA 69 JUNCTION": "TWGVA69",
+    "VA70 PLANK": "TWGVA70",
+    "VA71 RIO": "TWGVA71",
+    "VA72 W MAIN": "TWGVA72",
+    "W BROAD ST T47": "TWGVA47",
+    "BATTLEFIELD BLVD": "TWGVA59",
+    "GEORGE W. VA T25": "TWGVA25",
+    "KECOUGHTAN VA T26": "TWGVA26",
+    "NORFOLK VA T27": "TWGVA27",
+    "VIRGINIA BEACH T40": "TWGVA40",
+    "GREAT NECK RD": "TWGVA60",
+    "J CLYDE MORRIS": "TWGVA63",
+    "NEWMARKET DR": "TWGVA62",
+    "HIGH ST VA T24": "TWGVA24",
+    "ABERDEEN VA T28": "TWGVA28",
+    "WARWICK BLVD": "TWGVA61",
+    "WEST MERCURY BLVD 2": "TWGVA58"
 }
 
 # ---------------- SESSION ----------------
@@ -22,147 +99,77 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user = ""
 
-# =========================================================
-# 🎨 LOGIN PAGE (MODERN CARD UI)
-# =========================================================
+# ---------------- LOGIN PAGE ----------------
 def login_page():
 
     st.markdown("""
     <style>
-    .login-box {
+    .box {
         width: 380px;
         margin: auto;
-        margin-top: 100px;
+        margin-top: 120px;
         padding: 30px;
         border-radius: 18px;
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 0 40px rgba(0,0,0,0.6);
-        backdrop-filter: blur(10px);
         text-align: center;
     }
-
-    .login-title {
-        font-size: 26px;
-        font-weight: 800;
-        color: #ffffff;
-        margin-bottom: 10px;
-    }
-
-    .login-sub {
-        font-size: 12px;
-        color: #9ca3af;
-        margin-bottom: 20px;
-    }
-
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <div class="login-box">
-        <div class="login-title">🔐 Store Intelligence</div>
-        <div class="login-sub">Login to access dashboard</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<div class='box'><h2>🔐 TWG Login</h2><p>Enter credentials</p></div>", unsafe_allow_html=True)
 
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    u = st.text_input("Username")
+    p = st.text_input("Password", type="password")
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        login_btn = st.button("🚀 Login")
-
-    with col2:
-        st.button("ℹ Info")
-
-    if login_btn:
-        if username in USERS and USERS[username] == password:
+    if st.button("Login"):
+        if u in USERS and USERS[u] == p:
             st.session_state.logged_in = True
-            st.session_state.user = username
+            st.session_state.user = u
             st.rerun()
         else:
-            st.error("❌ Invalid Credentials")
+            st.error("Wrong credentials")
 
     st.stop()
 
-# ---------------- SHOW LOGIN IF NOT LOGGED IN ----------------
 if not st.session_state.logged_in:
     login_page()
 
-# =========================================================
-# 🚪 LOGOUT (VISIBLE + CLEAN)
-# =========================================================
-st.sidebar.markdown(f"### 👤 {st.session_state.user}")
+# ---------------- LOGOUT ----------------
+st.sidebar.write(f"👤 {st.session_state.user}")
 
 if st.sidebar.button("🚪 Logout"):
     st.session_state.logged_in = False
     st.session_state.user = ""
     st.rerun()
 
-st.markdown(
-    f"""
-    <div style="
-        position: fixed;
-        top: 10px;
-        right: 20px;
-        background: rgba(255,255,255,0.05);
-        padding: 8px 14px;
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.1);
-        color: #fff;
-        font-size: 13px;
-    ">
-        👤 Logged in as: <b>{st.session_state.user}</b>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-# =========================================================
-# 🎨 MAIN UI
-# =========================================================
+# ---------------- UI STYLE ----------------
 st.markdown("""
 <style>
-
 .stApp {
     background: radial-gradient(circle at top, #0b1220, #050814);
-    color: #e5e7eb;
+    color: white;
 }
-
-/* INPUT */
 textarea {
-    border-radius: 14px !important;
-    background: rgba(255,255,255,0.04) !important;
-    color: white !important;
-    border: 1px solid rgba(255,255,255,0.10) !important;
+    border-radius: 10px !important;
 }
-
-/* BUTTON */
 .stButton > button {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
     background: linear-gradient(135deg,#2563eb,#06b6d4);
     color: white;
-    font-weight: 700;
+    font-weight: bold;
+    border-radius: 10px;
 }
-
-.stButton > button:hover {
-    transform: scale(1.03);
-}
-
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------- HEADER ----------------
-st.title("📊 Store Intelligence Dashboard")
-st.markdown(f"Welcome **{st.session_state.user}** 👋")
+st.title("📊 TWG Store Intelligence Dashboard")
+st.markdown(f"Welcome **{st.session_state.user}**")
 
 st.markdown("---")
 
 # ---------------- INPUTS ----------------
-master_list = st.text_area("📌 Master Store List", height=200)
+master_list = st.text_area("📌 Master Store List (optional)", height=150)
 raw_data = st.text_area("📥 Raw Data", height=200)
 
 master_lines = [m.strip() for m in master_list.splitlines() if m.strip()]
@@ -170,41 +177,41 @@ master_lines = [m.strip() for m in master_list.splitlines() if m.strip()]
 # ---------------- PROCESS ----------------
 if st.button("🚀 Generate Report"):
 
-    if not master_lines or not raw_data:
-        st.warning("Missing data")
+    if not raw_data:
+        st.warning("Please add raw data")
         st.stop()
-
-    progress = st.progress(0)
-    for i in range(100):
-        time.sleep(0.003)
-        progress.progress(i + 1)
 
     raw_lines = [r.strip() for r in raw_data.splitlines() if r.strip()]
 
     time_pattern = r'^\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)$'
+
     extracted = {}
     current = None
 
     for line in raw_lines:
+
         if re.match(time_pattern, line):
             if current:
                 extracted[current.upper()] = line
             continue
+
         current = line
 
     results = []
 
-    for store in master_lines:
-        tval = ""
+    for store_name, store_id in STORE_MAP.items():
+
+        time_value = ""
 
         for raw_store, t in extracted.items():
-            if raw_store.lower() in store.lower():
-                tval = t
+            if store_name.lower() in raw_store.lower():
+                time_value = t
                 break
 
         results.append({
-            "Store": store,
-            "Time": tval if tval else "❌ Missing"
+            "Store Name": store_name,
+            "Store ID": store_id,
+            "Time": time_value if time_value else "❌ Missing"
         })
 
     df = pd.DataFrame(results)
@@ -217,6 +224,6 @@ if st.button("🚀 Generate Report"):
     st.download_button(
         "⬇ Download CSV",
         df.to_csv(index=False).encode("utf-8"),
-        "report.csv",
+        "twg_report.csv",
         "text/csv"
     )
