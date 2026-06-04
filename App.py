@@ -9,9 +9,73 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- LOGIN SYSTEM (BASIC DEMO) ----------------
+# ---------------- CSS STYLE ----------------
+st.markdown(
+    """
+    <style>
+
+    /* Background */
+    .stApp {
+        background-color: #0f172a;
+        color: white;
+    }
+
+    /* Main title */
+    h1 {
+        text-align: center;
+        color: #38bdf8;
+        font-weight: 800;
+    }
+
+    /* Sub headings */
+    h3 {
+        color: #e2e8f0;
+        font-weight: 600;
+    }
+
+    /* Text area */
+    textarea {
+        background-color: #1e293b !important;
+        color: white !important;
+        border-radius: 10px !important;
+    }
+
+    /* Buttons */
+    .stButton>button {
+        background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+        color: white;
+        border-radius: 10px;
+        padding: 10px 20px;
+        border: none;
+        font-weight: bold;
+    }
+
+    .stButton>button:hover {
+        background: linear-gradient(90deg, #3b82f6, #0ea5e9);
+        transform: scale(1.02);
+    }
+
+    /* Dataframe */
+    .dataframe {
+        background-color: white;
+    }
+
+    /* Footer */
+    .footer {
+        text-align: center;
+        color: #94a3b8;
+        margin-top: 30px;
+        font-size: 14px;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ---------------- LOGIN ----------------
 def login():
-    st.title("🔐 TWG SmartOps Login")
+    st.markdown("<h1>🔐 TWG SmartOps Login</h1>", unsafe_allow_html=True)
 
     user = st.text_input("Username")
     pwd = st.text_input("Password", type="password")
@@ -20,7 +84,7 @@ def login():
         if user and pwd:
             st.session_state["logged_in"] = True
         else:
-            st.error("Please enter credentials")
+            st.error("Enter credentials")
 
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
@@ -29,7 +93,7 @@ if not st.session_state["logged_in"]:
     login()
     st.stop()
 
-# ---------------- STORE DATABASE ----------------
+# ---------------- STORE DATA ----------------
 STORE_DATA = {
     "HICKORY": {"id": "TWGNC52", "dm": "Angie"},
     "BRAGG BLVD": {"id": "TWGNC56", "dm": "Ollivanza"},
@@ -39,14 +103,14 @@ STORE_DATA = {
     "CHERRY T42": {"id": "TWGSC42", "dm": "Kindi"},
 }
 
-# ---------------- CLEAN FUNCTION ----------------
+# ---------------- CLEAN ----------------
 def clean_text(text):
     text = str(text).upper()
     text = re.sub(r'[^A-Z0-9 ]', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-# ---------------- MATCH ENGINE ----------------
+# ---------------- MATCH ----------------
 def match_store(text):
     text = clean_text(text)
 
@@ -71,7 +135,7 @@ def match_store(text):
 
     return "UNMATCHED"
 
-# ---------------- EXTRACT FUNCTION ----------------
+# ---------------- EXTRACT ----------------
 def extract_store_time(raw):
 
     lines = [l.strip() for l in raw.splitlines() if l.strip()]
@@ -103,26 +167,23 @@ def extract_store_time(raw):
     return result
 
 # ---------------- UI ----------------
-st.title("🚀 TWG SmartOps SaaS Dashboard")
-
-st.markdown("### 📊 Store Data Processing System")
+st.markdown("<h1>🚀 TWG SmartOps SaaS Dashboard</h1>", unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("📥 Raw Data Input")
-    raw_data = st.text_area("Paste raw data", height=300)
+    st.markdown("### 📥 Raw Data Input")
+    raw_data = st.text_area("", height=300)
 
 with col2:
-    st.subheader("📥 Manual Store Input")
-    manual_data = st.text_area("Paste store names", height=300)
+    st.markdown("### 📥 Manual Store Input")
+    manual_data = st.text_area("", height=300)
 
 # ---------------- PROCESS ----------------
 if st.button("🚀 Run System"):
 
     final = []
 
-    # RAW DATA
     for store_raw, time in extract_store_time(raw_data):
 
         matched = match_store(store_raw)
@@ -142,7 +203,6 @@ if st.button("🚀 Run System"):
             "Time": time
         })
 
-    # MANUAL DATA
     for line in manual_data.splitlines():
 
         line = line.strip()
@@ -174,7 +234,6 @@ if st.button("🚀 Run System"):
 
     st.dataframe(df, use_container_width=True)
 
-    # ---------------- DOWNLOAD ----------------
     csv = df.to_csv(index=False).encode()
 
     st.download_button(
@@ -184,17 +243,14 @@ if st.button("🚀 Run System"):
         "text/csv"
     )
 
-    # ---------------- COPY ----------------
     st.subheader("📋 Copy Data")
 
     st.text_area("Copy from here", df.to_csv(index=False), height=200)
 
 # ---------------- FOOTER ----------------
-st.markdown("---")
-
 st.markdown(
     """
-    <div style='text-align: center; font-size: 16px; color: grey;'>
+    <div class='footer'>
         Created by <b>Noor Ul Ain</b> <br>
         Managed by <b>Sharox Javaid</b>
     </div>
