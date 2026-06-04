@@ -3,53 +3,48 @@ import pandas as pd
 import re
 import time
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------- PAGE ----------------
 st.set_page_config(
     page_title="Store Intelligence Dashboard",
     page_icon="📊",
     layout="wide"
 )
 
-# ---------------- PREMIUM UI ----------------
+# ---------------- STYLE ----------------
 st.markdown("""
 <style>
 
-/* Background */
 .stApp {
     background: radial-gradient(circle at top, #0b1220, #050814);
     color: #e5e7eb;
 }
 
-/* Top Header Card */
+/* HEADER */
 .header {
-    background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(6,182,212,0.08));
-    padding: 20px;
-    border-radius: 16px;
     text-align: center;
-    margin-bottom: 20px;
+    padding: 18px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 20px;
 }
 
-/* Title */
 .title {
     font-size: 32px;
     font-weight: 800;
-    color: #e5e7eb;
 }
 
-/* Subtitle */
 .subtitle {
     font-size: 13px;
-    color: #94a3b8;
-    margin-top: 5px;
+    color: #9ca3af;
 }
 
-/* INPUT BOXES */
+/* TEXTAREA */
 textarea {
     border-radius: 12px !important;
     background: rgba(255,255,255,0.03) !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
     color: white !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
 }
 
 /* BUTTON */
@@ -57,84 +52,65 @@ textarea {
     width: 100%;
     padding: 14px;
     border-radius: 12px;
-    font-weight: 700;
     background: linear-gradient(135deg,#2563eb,#06b6d4);
     color: white;
-    border: none;
-    transition: 0.3s;
+    font-weight: 700;
 }
 
 .stButton > button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 30px rgba(37,99,235,0.25);
+    transform: scale(1.03);
+    box-shadow: 0 10px 25px rgba(37,99,235,0.25);
 }
 
-/* METRICS CARDS */
+/* METRICS */
 [data-testid="stMetric"] {
     background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
-    padding: 16px;
-    border-radius: 14px;
-    backdrop-filter: blur(10px);
-}
-
-/* TABLE */
-[data-testid="stDataFrame"] {
+    padding: 14px;
     border-radius: 12px;
-    overflow: hidden;
-}
-
-/* SECTION BOX */
-.box {
-    background: rgba(255,255,255,0.03);
-    padding: 15px;
-    border-radius: 14px;
     border: 1px solid rgba(255,255,255,0.06);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HEADER CARD ----------------
+# ---------------- HEADER ----------------
 st.markdown("""
 <div class="header">
     <div class="title">📊 Store Intelligence Dashboard</div>
-    <div class="subtitle">TOTALLYWIRELESSGROUP • Advanced Analytics System</div>
+    <div class="subtitle">TOTALLYWIRELESSGROUP • Smart Extraction System</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- STATS PLACEHOLDER ----------------
-st.markdown("### 📌 Quick Controls")
+# ---------------- SEARCH ----------------
+c1, c2 = st.columns(2)
 
-colA, colB = st.columns(2)
-
-with colA:
+with c1:
     master_search = st.text_input("🔍 Search Master List")
 
-with colB:
+with c2:
     raw_search = st.text_input("🔍 Search Raw Data")
 
 st.markdown("---")
 
-# ---------------- INPUTS ----------------
+# ---------------- INPUT BOXES (FIXED SIDE BY SIDE) ----------------
 col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("### 📌 Master Store List")
-    master_list = st.text_area("", height=220)
+    master_list = st.text_area("", height=250)
 
 with col2:
     st.markdown("### 📥 Raw Data Logs")
-    raw_data = st.text_area("", height=220)
+    raw_data = st.text_area("", height=250)
 
 # ---------------- PROCESS ----------------
 if st.button("🚀 Generate Report"):
 
     if not master_list or not raw_data:
-        st.warning("Please fill both inputs")
+        st.warning("Please fill both Master List and Raw Data")
         st.stop()
 
-    # loading animation
+    # loading
     progress = st.progress(0)
     for i in range(100):
         time.sleep(0.003)
@@ -205,10 +181,8 @@ if st.button("🚀 Generate Report"):
 
     st.markdown("---")
 
-    # ---------------- TABLE ----------------
     st.dataframe(df, use_container_width=True)
 
-    # ---------------- DOWNLOAD ----------------
     csv = df.to_csv(index=False).encode("utf-8")
 
     st.download_button(
