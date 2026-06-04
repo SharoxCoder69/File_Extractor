@@ -10,43 +10,87 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- STORE DATA (UPDATED) ----------------
+# ---------------- STORE DATA (IMAGE FINAL LIST ONLY) ----------------
 STORE_DATA = {
-    "VICTORY DR GA T32": {"id": "TWGGA32", "dm": "-"},
-    "MILGEN GA T34": {"id": "TWGGA34", "dm": "-"},
-    "WOODRUFF GA T33": {"id": "TWGGA33", "dm": "-"},
-    "W FRANKLIN T42": {"id": "TWGNC41", "dm": "Kindi"},
-    "CHERRY T42": {"id": "TWGSC42", "dm": "Kindi"},
-    "LANCASTER SC T29": {"id": "TWGSC29", "dm": "Kindi"},
-    "CANNON": {"id": "TWGNC50", "dm": "Kindi"},
-    "HICKORY": {"id": "TWGNC52", "dm": "Angie"},
-    "HUNTERSVILLE": {"id": "TWGNC54", "dm": "Angie"},
-    "LINCOLNTON NC T30": {"id": "TWGNC30", "dm": "Angie"},
-    "MOORESVILLE": {"id": "TWGNC53", "dm": "Angie"},
-    "MORGANTON": {"id": "TWGNC55", "dm": "Angie"},
-    "ROXIE ST": {"id": "TWGNC51", "dm": "Angie"},
-    "SALISBURY NC T17": {"id": "TWGNC17", "dm": "Angie"},
-    "OWEN NC T36": {"id": "TWGNC36", "dm": "Ollivanza"},
-    "BONANZA NC T37": {"id": "TWGNC37", "dm": "Ollivanza"},
-    "BRAGG BLVD": {"id": "TWGNC56", "dm": "Ollivanza"},
-    "LUMBERTON NC": {"id": "TWGNC57", "dm": "Ollivanza"},
-    "GOOD MIDDLING": {"id": "TWGNC74", "dm": "Ollivanza"},
-    "N EASTERN BLVD": {"id": "TWGNC75", "dm": "Ollivanza"},
-    "6916 CLIFFDALE RD": {"id": "TWGNC76", "dm": "Ollivanza"},
-    "NC FAY DUNN": {"id": "TWGNC77", "dm": "Ollivanza"},
-    "3620 RAMSEY ST": {"id": "TWGNC78", "dm": "Ollivanza"},
-    "5135 RAEFORD RD": {"id": "TWGNC79", "dm": "Ollivanza"},
-    "NC LAURINBURG": {"id": "TWGNC80", "dm": "Ollivanza"},
+    "VICTORY DR GA T32": {"id": "", "dm": ""},
+    "MILGEN GA T34": {"id": "", "dm": ""},
+    "WOODRUFF GA T33": {"id": "", "dm": ""},
 
-    # -------- NEW UPDATED STORES --------
+    "W FRANKLIN T42": {"id": "", "dm": ""},
+    "CHERRY T42": {"id": "", "dm": ""},
+    "LANCASTER SC T29": {"id": "", "dm": ""},
+
+    "CANNON": {"id": "", "dm": ""},
+    "HICKORY": {"id": "", "dm": ""},
+    "HUNTERSVILLE": {"id": "", "dm": ""},
+    "LINCOLNTON NC T30": {"id": "", "dm": ""},
+    "MOORESVILLE": {"id": "", "dm": ""},
+    "MORGANTON": {"id": "", "dm": ""},
+    "ROXIE ST": {"id": "", "dm": ""},
+    "SALISBURY NC T17": {"id": "", "dm": ""},
+
+    "OWEN NC T36": {"id": "", "dm": ""},
+    "BONANZA NC T37": {"id": "", "dm": ""},
+    "BRAGG BLVD": {"id": "", "dm": ""},
+    "LUMBERTON NC": {"id": "", "dm": ""},
+    "GOOD MIDDLING": {"id": "", "dm": ""},
+    "N EASTERN BLVD": {"id": "", "dm": ""},
+    "6916 CLIFFDALE RD": {"id": "", "dm": ""},
+    "NC FAY DUNN": {"id": "", "dm": ""},
+    "3620 RAMSEY ST": {"id": "", "dm": ""},
+    "5135 RAEFORD RD": {"id": "", "dm": ""},
+    "NC LAURINBURG": {"id": "", "dm": ""},
+
     "AVONDALE NC T38": {"id": "TWGNC38", "dm": "Ben"},
     "GATE CITY NC T3": {"id": "TWGNC03", "dm": "Tom"},
-    "COLISEUM NC T11": {"id": "TWGNC11", "dm": "Kindi"},
-    "EAST CONE NC T12": {"id": "TWGNC12", "dm": "-"},
-    "EAST MARKET NC T1": {"id": "TWGNC01", "dm": "-"},
-    "WEST MARKET NC T2": {"id": "TWGNC02", "dm": "-"},
+    "COLISEUM NC T11": {"id": "", "dm": ""},
+    "EAST CONE NC T12": {"id": "", "dm": ""},
+    "EAST MARKET NC T1": {"id": "", "dm": ""},
+    "WEST MARKET NC T2": {"id": "", "dm": ""},
+
+    "ASHEBORO NC T10": {"id": "", "dm": ""},
+    "EASTCHESTER NC T8": {"id": "", "dm": ""},
+    "GREENSBORO NC T7": {"id": "", "dm": ""},
+    "LEXINGTON NC T9": {"id": "", "dm": ""},
+    "THOMASVILLE NC T6": {"id": "", "dm": ""},
+
+    "WALKERTOWN NC T4": {"id": "", "dm": ""},
+    "WAUGHTOWN NC T14": {"id": "", "dm": ""},
+    "UNIVERSITY NC T16": {"id": "", "dm": ""},
+    "REYNOLDA NC T15": {"id": "", "dm": ""},
+
+    "ANDERSON MAIN ST": {"id": "", "dm": ""},
+    "CEDAR LANE SC T18": {"id": "", "dm": ""},
     "EASLEY SC T20": {"id": "TWGSC20", "dm": "Noaman"},
-    "LYNCHBURG VA T73": {"id": "TWGVA73", "dm": "Mekail"},
+    "LAURENS SC T31": {"id": "", "dm": ""},
+
+    "VA73 LYNCHBURG": {"id": "TWGVA73", "dm": "Mekail"},
+    "S LABURNUM T48": {"id": "", "dm": ""},
+    "STAPLES MILL": {"id": "", "dm": ""},
+    "NINE MILE": {"id": "", "dm": ""},
+    "7223 HULL ST T45": {"id": "", "dm": ""},
+    "CHESTER VA": {"id": "", "dm": ""},
+
+    "VA68 CHAMABERLAYNE": {"id": "", "dm": ""},
+    "VA 69 JUNCTION": {"id": "", "dm": ""},
+    "VA70 PLANK": {"id": "", "dm": ""},
+    "VA71 RIO": {"id": "", "dm": ""},
+    "VA72 W MAIN": {"id": "", "dm": ""},
+
+    "W BROAD ST T47": {"id": "", "dm": ""},
+    "BATTLEFIELD BLVD": {"id": "", "dm": ""},
+    "GEORGE W. VA T25": {"id": "", "dm": ""},
+    "KECOUGHTAN VA T26": {"id": "", "dm": ""},
+    "NORFOLK VA T27": {"id": "", "dm": ""},
+    "VIRGINIA BEACH T40": {"id": "", "dm": ""},
+
+    "GREAT NECK RD": {"id": "", "dm": ""},
+    "J CLYDE MORRIS": {"id": "", "dm": ""},
+    "NEWMARKET DR": {"id": "", "dm": ""},
+    "HIGH ST VA T24": {"id": "", "dm": ""},
+    "ABERDEEN VA T28": {"id": "", "dm": ""},
+    "WARWICK BLVD": {"id": "", "dm": ""},
+    "WEST MERCURY BLVD 2": {"id": "", "dm": ""},
 }
 
 # ---------------- MODEL ----------------
@@ -60,10 +104,6 @@ store_embeddings = {
     store: model.encode(store)
     for store in STORE_DATA
 }
-
-# ---------------- CLEAN ----------------
-def clean(t):
-    return re.sub(r'[^a-z0-9 ]', '', t.lower()).strip()
 
 # ---------------- PARSER ----------------
 def parse_raw(raw_text):
@@ -129,12 +169,8 @@ if st.button("🚀 Generate Report"):
 
         matched = ai_match(raw_store)
 
-        if matched:
-            sid = STORE_DATA[matched]["id"]
-            dm = STORE_DATA[matched]["dm"]
-        else:
-            sid = ""
-            dm = ""
+        sid = STORE_DATA.get(matched, {}).get("id", "")
+        dm = STORE_DATA.get(matched, {}).get("dm", "")
 
         results.append({
             "Store Name": matched,
