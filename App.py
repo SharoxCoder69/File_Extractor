@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- STORE DATA ----------------
+# ---------------- STORE DATA (UPDATED) ----------------
 STORE_DATA = {
     "VICTORY DR GA T32": {"id": "TWGGA32", "dm": "-"},
     "MILGEN GA T34": {"id": "TWGGA34", "dm": "-"},
@@ -28,7 +28,6 @@ STORE_DATA = {
     "SALISBURY NC T17": {"id": "TWGNC17", "dm": "Angie"},
     "OWEN NC T36": {"id": "TWGNC36", "dm": "Ollivanza"},
     "BONANZA NC T37": {"id": "TWGNC37", "dm": "Ollivanza"},
-    "HOPE MILLS T39": {"id": "TWGNC39", "dm": "Ollivanza"},
     "BRAGG BLVD": {"id": "TWGNC56", "dm": "Ollivanza"},
     "LUMBERTON NC": {"id": "TWGNC57", "dm": "Ollivanza"},
     "GOOD MIDDLING": {"id": "TWGNC74", "dm": "Ollivanza"},
@@ -37,10 +36,20 @@ STORE_DATA = {
     "NC FAY DUNN": {"id": "TWGNC77", "dm": "Ollivanza"},
     "3620 RAMSEY ST": {"id": "TWGNC78", "dm": "Ollivanza"},
     "5135 RAEFORD RD": {"id": "TWGNC79", "dm": "Ollivanza"},
-    "NC LAURINBURG": {"id": "TWGNC80", "dm": "Ollivanza"}
+    "NC LAURINBURG": {"id": "TWGNC80", "dm": "Ollivanza"},
+
+    # -------- NEW UPDATED STORES --------
+    "AVONDALE NC T38": {"id": "TWGNC38", "dm": "Ben"},
+    "GATE CITY NC T3": {"id": "TWGNC03", "dm": "Tom"},
+    "COLISEUM NC T11": {"id": "TWGNC11", "dm": "Kindi"},
+    "EAST CONE NC T12": {"id": "TWGNC12", "dm": "-"},
+    "EAST MARKET NC T1": {"id": "TWGNC01", "dm": "-"},
+    "WEST MARKET NC T2": {"id": "TWGNC02", "dm": "-"},
+    "EASLEY SC T20": {"id": "TWGSC20", "dm": "Noaman"},
+    "LYNCHBURG VA T73": {"id": "TWGVA73", "dm": "Mekail"},
 }
 
-# ---------------- AI MODEL ----------------
+# ---------------- MODEL ----------------
 @st.cache_resource
 def load_model():
     return SentenceTransformer('all-MiniLM-L6-v2')
@@ -56,7 +65,7 @@ store_embeddings = {
 def clean(t):
     return re.sub(r'[^a-z0-9 ]', '', t.lower()).strip()
 
-# ---------------- FIXED PARSER ----------------
+# ---------------- PARSER ----------------
 def parse_raw(raw_text):
     lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
 
@@ -64,27 +73,20 @@ def parse_raw(raw_text):
     i = 0
 
     while i < len(lines):
-
         line = lines[i]
 
-        # CASE 1: store + time same line
         match = re.search(r'(.+?)\s+(\d{1,2}:\d{2}\s?(AM|PM|am|pm)?)', line)
 
         if match:
-            store = match.group(1).strip()
-            time = match.group(2).strip()
-            results.append((store, time))
+            results.append((match.group(1).strip(), match.group(2).strip()))
             i += 1
             continue
 
-        # CASE 2: next line time
         if i + 1 < len(lines):
             time_match = re.search(r'\d{1,2}:\d{2}\s?(AM|PM|am|pm)?', lines[i+1])
 
             if time_match:
-                store = line
-                time = time_match.group()
-                results.append((store, time))
+                results.append((line, time_match.group()))
                 i += 2
                 continue
 
@@ -113,13 +115,9 @@ st.title("🤖 TWG AI SMART DASHBOARD")
 
 raw_data = st.text_area("📥 Paste Raw Data", height=300)
 
-# ---------------- PROCESS ----------------
 if st.button("🚀 Generate Report"):
 
     parsed = parse_raw(raw_data)
-
-    # 🔥 DEBUG (agar 0 aaye to dekh sako)
-    st.write("DEBUG PARSED DATA:", parsed)
 
     if len(parsed) == 0:
         st.error("No data parsed. Check raw format.")
