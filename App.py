@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
 import re
+from rapidfuzz import fuzz
 
-# ---------------- PAGE ----------------
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="TWG Store Intelligence",
+    page_title="TWG Store Dashboard",
     page_icon="📊",
     layout="wide"
 )
@@ -93,13 +94,12 @@ STORE_MAP = {
     "WEST MERCURY BLVD 2": "TWGVA58"
 }
 
-# ---------------- SESSION ----------------
+# ---------------- LOGIN ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user = ""
 
-# ---------------- LOGIN ----------------
-def login_page():
+def login():
     st.title("🔐 TWG Login")
 
     u = st.text_input("Username")
@@ -116,12 +116,12 @@ def login_page():
     st.stop()
 
 if not st.session_state.logged_in:
-    login_page()
+    login()
 
 # ---------------- LOGOUT ----------------
 st.sidebar.write(f"👤 {st.session_state.user}")
 
-if st.sidebar.button("🚪 Logout"):
+if st.sidebar.button("Logout"):
     st.session_state.logged_in = False
     st.session_state.user = ""
     st.rerun()
@@ -133,9 +133,6 @@ st.markdown("""
     background: radial-gradient(circle at top, #0b1220, #050814);
     color: white;
 }
-textarea {
-    border-radius: 10px !important;
-}
 .stButton > button {
     background: linear-gradient(135deg,#2563eb,#06b6d4);
     color: white;
@@ -145,47 +142,16 @@ textarea {
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HEADER ----------------
-st.title("📊 TWG Store Intelligence Dashboard")
-st.markdown(f"Welcome **{st.session_state.user}**")
+# ---------------- INPUT ----------------
+st.title("📊 TWG Store Dashboard")
 
-st.markdown("---")
-
-# ---------------- INPUTS ----------------
 raw_data = st.text_area("📥 Raw Data", height=250)
 
-# ---------------- NORMALIZE FUNCTION (FIX) ----------------
+# ---------------- CLEAN FUNCTION ----------------
 def normalize(text):
     return re.sub(r'[^a-z0-9]', '', text.lower())
 
-# ---------------- PROCESS ----------------
-if st.button("🚀 Generate Report"):
-
-    if not raw_data:
-        st.warning("Add raw data")
-        st.stop()
-
-    raw_lines = [r.strip() for r in raw_data.splitlines() if r.strip()]
-
-    time_pattern = r'^\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)$'
-
-    extracted = {}
-    current = None
-
-    for line in raw_lines:
-
-        if re.match(time_pattern, line):
-            if current:
-                extracted[current.upper()] = line
-            continue
-
-        current = line
-
-    results = []
-
-    # 🔥 SMART MATCHING FIX
-    from rapidfuzz import fuzz
-
+# ---------------- FUZZY MATCH ----------------
 def best_match(store_name, raw_dict):
     best_score = 0
     best_time = ""
@@ -199,25 +165,34 @@ def best_match(store_name, raw_dict):
 
     return best_time
 
-results = []
+# ---------------- PROCESS ----------------
+if st.button("Generate Report"):
 
+    if not raw_data:
+        st.warning("Add raw data first")
+        st.stop()
 
-    time_value = best_match(store_name, extracted)
+    lines = [l.strip() for l in raw_data.splitlines() if l.strip()]
 
-    results.append({
-        "Store Name": store_name,
-        "Store ID": store_id,
-        "Time": time_value if time_value else "❌ Missing"
-    })
+    time_pattern = r'^\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)$'
 
-        store_clean = normalize(store_name)
-        time_value = ""
+    extracted = {}
+    current = None
 
-        for raw_store, t in extracted.items():
+    for line in lines:
 
-            if store_clean in normalize(raw_store):
-                time_value = t
-                break
+        if re.match(time_pattern, line):
+            if current:
+                extracted[current.upper()] = line
+            continue
+
+        current = line
+
+    results = []
+
+    for store_name, store_id in STORE_MAP.items():
+
+        time_value = best_match(store_name, extracted)
 
         results.append({
             "Store Name": store_name,
