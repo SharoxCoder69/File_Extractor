@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import re
-from sentence_transformers import SentenceTransformer, util
 
 # ---------------- PAGE ----------------
 st.set_page_config(
@@ -42,35 +41,47 @@ STORE_DATA = {
     "NC LAURINBURG": {"id": "TWGNC80", "dm": "Ollivanza"},
 }
 
-# ---------------- CLEAN FUNCTION (MAIN FIX) ----------------
+# ---------------- CLEAN FUNCTION ----------------
 def clean_text(text):
     text = str(text).upper()
     text = re.sub(r'[^A-Z0-9 ]', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-# ---------------- SMART MATCH FUNCTION ----------------
+# ---------------- FIXED MATCH FUNCTION (NO NONE ISSUE) ----------------
 def ai_match(raw_text):
 
     cleaned_input = clean_text(raw_text)
 
+    best_match = None
+    best_score = 0
+
     for store in STORE_DATA.keys():
 
         cleaned_store = clean_text(store)
 
-        # EXACT MATCH AFTER CLEANING
-        if cleaned_store == cleaned_input:
+        # 1. CONTAINS MATCH (MOST ACCURATE)
+        if cleaned_store in cleaned_input:
             return store
 
-    # PARTIAL MATCH (IMPORTANT FOR DIRTY RAW DATA)
-    for store in STORE_DATA.keys():
-
-        cleaned_store = clean_text(store)
-
-        if cleaned_store in cleaned_input or cleaned_input in cleaned_store:
+        if cleaned_input in cleaned_store:
             return store
 
-    return None
+        # 2. WORD MATCH SCORE
+        store_words = set(cleaned_store.split())
+        input_words = set(cleaned_input.split())
+
+        common = len(store_words & input_words)
+
+        if common > best_score:
+            best_score = common
+            best_match = store
+
+    # 3. SAFE RETURN (NO NONE)
+    if best_match and best_score > 0:
+        return best_match
+
+    return "UNKNOWN"
 
 # ---------------- PARSER ----------------
 def parse_raw(raw_text):
@@ -119,12 +130,8 @@ if st.button("🚀 Generate Report"):
 
         matched = ai_match(raw_store)
 
-        if matched:
-            sid = STORE_DATA[matched]["id"]
-            dm = STORE_DATA[matched]["dm"]
-        else:
-            sid = ""
-            dm = ""
+        sid = STORE_DATA.get(matched, {}).get("id", "")
+        dm = STORE_DATA.get(matched, {}).get("dm", "")
 
         results.append({
             "Store Name": matched,
@@ -137,7 +144,7 @@ if st.button("🚀 Generate Report"):
     df = pd.DataFrame(results)
 
     st.metric("Total Records", len(df))
-    st.metric("Matched Stores", len(df[df["Store Name"] != ""]))
+    st.metric("Matched Stores", len(df[df["Store Name"] != "UNKNOWN"]))
 
     st.dataframe(df, use_container_width=True)
 
