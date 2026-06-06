@@ -231,7 +231,7 @@ st.markdown("---")
 st.markdown(
     """
     <div class='footer'>
-        Created by <b>Noor Ul Ain</b> <br>
+        Created by <b>Totallywirelessgroup</b> <br>
         Managed by <b>Sharox Javaid</b>
     </div>
     """,
