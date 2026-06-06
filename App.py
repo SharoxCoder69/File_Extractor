@@ -57,7 +57,6 @@ if not st.session_state.logged_in:
 
 # ---------------- STORE DATABASE ----------------
 STORE_DATA = {
-    # NC
     "HICKORY": {"id": "TWGNC52", "dm": "Angie"},
     "BRAGG BLVD": {"id": "TWGNC56", "dm": "Ollivanza"},
     "CANNON": {"id": "TWGNC50", "dm": "Kindi"},
@@ -72,7 +71,6 @@ STORE_DATA = {
     "RALEIGH": {"id": "TWGNC25", "dm": "Ollivanza"},
     "CHARLOTTE": {"id": "TWGNC10", "dm": "Kindi"},
 
-    # VA
     "ASHLAND": {"id": "TWGVA69", "dm": "Mekail"},
     "HULL STREET": {"id": "TWGVA72", "dm": "Mekail"},
     "WEST BROAD": {"id": "TWGVA73", "dm": "Mekail"},
@@ -80,29 +78,25 @@ STORE_DATA = {
     "HAMPTON": {"id": "TWGVA75", "dm": "Mekail"},
     "NORFOLK": {"id": "TWGVA76", "dm": "Mekail"},
 
-    # SC
     "LANCASTER": {"id": "TWGSC29", "dm": "Kindi"},
     "ROCK HILL": {"id": "TWGSC31", "dm": "Kindi"},
     "CHARLESTON": {"id": "TWGSC33", "dm": "Kindi"},
 
-    # GA
     "MILGEN": {"id": "TWGGA34", "dm": "Ollivanza"},
     "WOODRUFF": {"id": "TWGGA33", "dm": "Ollivanza"},
     "VICTORY DR": {"id": "TWGGA32", "dm": "Ollivanza"},
 }
 
-# ---------------- CLEAN TEXT ----------------
+# ---------------- CLEAN ----------------
 def clean_text(text):
     text = str(text).upper()
-
     text = re.sub(r'\bNC\b|\bVA\b|\bGA\b|\bSC\b', ' ', text)
     text = re.sub(r'\d+', ' ', text)
     text = re.sub(r'[^A-Z ]', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
-
     return text
 
-# ---------------- MATCH STORE ----------------
+# ---------------- MATCH ----------------
 def match_store(text):
     text = clean_text(text)
 
@@ -112,11 +106,9 @@ def match_store(text):
     for store in STORE_DATA.keys():
         s = clean_text(store)
 
-        # exact / contains match
         if s in text or text in s:
             return store
 
-        # word overlap score
         score = len(set(text.split()) & set(s.split()))
 
         if score > best_score:
@@ -128,7 +120,7 @@ def match_store(text):
 
     return "UNMATCHED"
 
-# ---------------- EXTRACT STORE + TIME ----------------
+# ---------------- EXTRACT ----------------
 def extract_store_time(raw):
     lines = [l.strip() for l in raw.splitlines() if l.strip()]
     result = []
@@ -157,22 +149,14 @@ def extract_store_time(raw):
 # ---------------- UI ----------------
 st.markdown("<h1>🚀 TWG SmartOps SaaS Dashboard</h1>", unsafe_allow_html=True)
 
-col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown("### 📥 Raw Data Input")
-    raw_data = st.text_area("Paste Raw Data", height=300)
-
-with col2:
-    st.markdown("### 📥 Manual Data Input")
-    manual_data = st.text_area("Paste Manual Data", height=300)
+st.markdown("### 📥 Raw Data Input Only")
+raw_data = st.text_area("Paste Raw Data", height=300)
 
 # ---------------- PROCESS ----------------
 if st.button("🚀 Run System"):
 
     final = []
 
-    # RAW DATA
     for store_raw, time in extract_store_time(raw_data):
 
         matched = match_store(store_raw)
@@ -185,34 +169,10 @@ if st.button("🚀 Run System"):
             dm = ""
 
         final.append({
-            "Source": "Raw",
             "Store Name": matched,
             "Store ID": sid,
             "DM": dm,
             "Time": time
-        })
-
-    # MANUAL DATA
-    for line in manual_data.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-
-        matched = match_store(line)
-
-        if matched in STORE_DATA:
-            sid = STORE_DATA[matched]["id"]
-            dm = STORE_DATA[matched]["dm"]
-        else:
-            sid = ""
-            dm = ""
-
-        final.append({
-            "Source": "Manual",
-            "Store Name": matched,
-            "Store ID": sid,
-            "DM": dm,
-            "Time": ""
         })
 
     df = pd.DataFrame(final)
@@ -222,7 +182,7 @@ if st.button("🚀 Run System"):
 
     st.dataframe(df, use_container_width=True)
 
-    # DOWNLOAD
+    # DOWNLOAD ONLY
     csv = df.to_csv(index=False).encode()
 
     st.download_button(
@@ -232,15 +192,11 @@ if st.button("🚀 Run System"):
         "text/csv"
     )
 
-    # COPY BOX
-    st.subheader("📋 Copy Data")
-    st.text_area("Copy from here", df.to_csv(index=False), height=200)
-
 # ---------------- FOOTER ----------------
 st.markdown("---")
 st.markdown("""
 <div class='footer'>
 Created by <b>Totallywirelessgroup</b><br>
-Managed by <b>Sharox Javaid</b>
+Managed by <b>Sharoz Javaid</b>
 </div>
 """, unsafe_allow_html=True)
