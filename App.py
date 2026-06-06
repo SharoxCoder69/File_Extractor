@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import re
 
-st.set_page_config(page_title="TWG SmartOps 2-Step", layout="wide")
+# ---------------- PAGE ----------------
+st.set_page_config(page_title="TWG SmartOps PRO", layout="wide")
 
 # ---------------- STORE DATABASE ----------------
 STORE_DATA = {
@@ -16,77 +17,101 @@ STORE_DATA = {
     "LINCOLNTON": {"id": "TWGNC30", "dm": "Kindi"},
     "GASTONIA": {"id": "TWGNC42", "dm": "Angie"},
     "BURLINGTON": {"id": "TWGNC13", "dm": "Ollivanza"},
+    "DURHAM": {"id": "TWGNC22", "dm": "Angie"},
+    "RALEIGH": {"id": "TWGNC25", "dm": "Ollivanza"},
+    "CHARLOTTE": {"id": "TWGNC10", "dm": "Kindi"},
+
+    "ASHLAND": {"id": "TWGVA69", "dm": "Mekail"},
+    "HULL STREET": {"id": "TWGVA72", "dm": "Mekail"},
+    "WEST BROAD": {"id": "TWGVA73", "dm": "Mekail"},
+    "VIRGINIA BEACH": {"id": "TWGVA74", "dm": "Mekail"},
+    "HAMPTON": {"id": "TWGVA75", "dm": "Mekail"},
+    "NORFOLK": {"id": "TWGVA76", "dm": "Mekail"},
+
+    "LANCASTER": {"id": "TWGSC29", "dm": "Kindi"},
+    "ROCK HILL": {"id": "TWGSC31", "dm": "Kindi"},
+    "CHARLESTON": {"id": "TWGSC33", "dm": "Kindi"},
+
+    "MILGEN": {"id": "TWGGA34", "dm": "Ollivanza"},
+    "WOODRUFF": {"id": "TWGGA33", "dm": "Ollivanza"},
+    "VICTORY DR": {"id": "TWGGA32", "dm": "Ollivanza"},
 }
 
-# ---------------- CLEAN ----------------
+# ---------------- ALIASES (GAME CHANGER) ----------------
+STORE_ALIASES = {
+    "VA 69 JUNCTION": "ASHLAND",
+    "W FRANKLIN T42": "GASTONIA",
+    "WOODRUFF GA": "WOODRUFF",
+    "MILGEN GA": "MILGEN",
+    "LANCASTER SC": "LANCASTER",
+    "ROXIE STREET": "ROXIE ST",
+}
+
+# ---------------- CLEAN FUNCTION ----------------
 def clean_text(text):
     text = str(text).upper()
+
     text = re.sub(r'\bNC\b|\bVA\b|\bGA\b|\bSC\b', ' ', text)
-    text = re.sub(r'T\d+|\bSTORE\b|\bSHIFT\b', ' ', text)
+    text = re.sub(r'\bSTORE\b|\bSHIFT\b|\bCLOCK\b|\bIN\b|\bOUT\b', ' ', text)
     text = re.sub(r'\d+', ' ', text)
+
     text = re.sub(r'[^A-Z ]', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
+
     return text
 
-# ---------------- MATCH ----------------
+# ---------------- MATCH FUNCTION (FINAL LOGIC) ----------------
 def match_store(text):
     text = clean_text(text)
+
+    # 1. ALIAS CHECK (MOST IMPORTANT)
+    for alias, real_store in STORE_ALIASES.items():
+        if alias in text:
+            return real_store
 
     best_match = "UNMATCHED"
     best_score = 0
 
     for store in STORE_DATA:
+
         s = clean_text(store)
 
+        # 2. DIRECT MATCH
         if s in text:
             return store
 
+        # 3. WORD MATCH
         score = len(set(text.split()) & set(s.split()))
+
+        # BOOST for first word match
+        if s.split() and s.split()[0] in text:
+            score += 2
 
         if score > best_score:
             best_score = score
             best_match = store
 
+    # LOW THRESHOLD (important)
     if best_score >= 1:
         return best_match
 
     return "UNMATCHED"
 
 # ---------------- UI ----------------
-st.title("🚀 TWG SmartOps 2-Step System")
+st.title("🚀 TWG SmartOps PRO SYSTEM")
 
-# ================= STEP 1 =================
-st.markdown("## 🟢 STEP 1: Raw Data Cleaner")
+st.markdown("## 📥 Paste Raw Data")
 
-raw_input = st.text_area("Paste RAW Data", height=200)
+raw_data = st.text_area("Raw Input", height=300)
 
-if st.button("Clean Data"):
+# ---------------- PROCESS ----------------
+if st.button("🚀 RUN SYSTEM"):
 
-    lines = [l.strip() for l in raw_input.splitlines() if l.strip()]
-    cleaned = []
-
-    for line in lines:
-        cleaned.append(clean_text(line))
-
-    cleaned_text = "\n".join(cleaned)
-
-    st.success("Cleaned Successfully 🚀")
-
-    st.text_area("COPY THIS CLEAN DATA", cleaned_text, height=200)
-
-# ================= STEP 2 =================
-st.markdown("## 🔵 STEP 2: Match Stores (DM + ID)")
-
-final_input = st.text_area("Paste Cleaned Data Here", height=200)
-
-if st.button("Run Matching System"):
+    lines = [l.strip() for l in raw_data.splitlines() if l.strip()]
 
     final = []
 
-    for line in final_input.splitlines():
-        line = line.strip()
-        if not line:
-            continue
+    for line in lines:
 
         matched = match_store(line)
 
@@ -106,15 +131,18 @@ if st.button("Run Matching System"):
 
     df = pd.DataFrame(final)
 
-    st.success("Matching Completed 🚀")
+    st.success("Processing Completed 🚀")
+
+    st.metric("Total Records", len(df))
 
     st.dataframe(df, use_container_width=True)
 
+    # DOWNLOAD
     csv = df.to_csv(index=False).encode()
 
     st.download_button(
-        "⬇ Download Result",
+        "⬇ Download Report",
         csv,
-        "twg_final.csv",
+        "twg_final_report.csv",
         "text/csv"
     )
