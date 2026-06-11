@@ -1,14 +1,22 @@
 import streamlit as st
 import pandas as pd
 import re
+import os
 from PIL import Image
 
 # ---------------- PAGE ----------------
 st.set_page_config(page_title="TWG SmartOps PRO", layout="wide")
 
 # ---------------- LOGO / GIF ----------------
-logo_gif = "logo 2.gif"  # Make sure this GIF is in the same folder as your script
-st.image(logo_gif, width=300)  # Adjust width as needed
+logo_path = "logo_2.gif"  # Rename your file to remove spaces if needed
+if os.path.exists(logo_path):
+    try:
+        image = Image.open(logo_path)
+        st.image(image, width=300)  # Display image safely
+    except Exception as e:
+        st.error(f"Error loading image: {e}")
+else:
+    st.warning(f"Logo file not found: {logo_path}")
 
 # ---------------- UI ----------------
 st.title("🚀 TWG SmartOps PRO SYSTEM")
