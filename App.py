@@ -6,14 +6,17 @@ from PIL import Image
 # ---------------- PAGE ----------------
 st.set_page_config(page_title="TWG SmartOps PRO", layout="wide")
 
-# ---------------- LOGO / IMAGE ----------------
-# Using the uploaded file directly
-logo_path = "/mnt/data/image(40).png"  # Path to the uploaded logo image
-try:
-    image = Image.open(logo_path)
-    st.image(image, width=300)
-except Exception as e:
-    st.error(f"Error loading image: {e}")
+# ---------------- UPLOAD LOGO ----------------
+uploaded_logo = st.file_uploader("Upload your logo (PNG, JPG, GIF)", type=["png", "jpg", "jpeg", "gif"])
+
+if uploaded_logo is not None:
+    try:
+        image = Image.open(uploaded_logo)
+        st.image(image, width=300)
+    except Exception as e:
+        st.error(f"Error loading image: {e}")
+else:
+    st.info("Please upload a logo to display here.")
 
 # ---------------- UI ----------------
 st.title("🚀 TWG SmartOps PRO SYSTEM")
