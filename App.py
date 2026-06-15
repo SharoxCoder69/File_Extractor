@@ -1,7 +1,10 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox
-from openpyxl import load_workbook
+import streamlit as st
+import pandas as pd
 import re
+from io import BytesIO
+from openpyxl import load_workbook
+
+st.set_page_config(page_title="Store Employee YES Generator")
 
 STORES = [
     "TWGSC18 -CEDAR LANE SC",
@@ -24,24 +27,20 @@ STORES = [
     "TWGVA63 -J CLYDE MORRIS VA",
 ]
 
-raw_file = ""
-report_file = ""
+st.title("Store Employee YES Generator")
 
-def select_raw():
-    global raw_file
-    raw_file = filedialog.askopenfilename(
-        title="Select Raw Data File"
-    )
-    raw_label.config(text=raw_file)
+raw_file = st.file_uploader(
+    "Upload Raw Data TXT File",
+    type=["txt"]
+)
 
-def select_report():
-    global report_file
-    report_file = filedialog.askopenfilename(
-        title="Select EMP Report File"
-    )
-    report_label.config(text=report_file)
+report_file = st.file_uploader(
+    "Upload EMP Report XLSX",
+    type=["xlsx"]
+)
 
 def extract_ntids(text):
+
     ntids = set()
 
     for store in STORES:
@@ -51,93 +50,77 @@ def extract_ntids(text):
 
         start = text.find(store)
 
-        next_store_pos = len(text)
+        next_pos = len(text)
 
         for s in STORES:
             pos = text.find(s, start + 1)
 
-            if pos != -1 and pos < next_store_pos:
-                next_store_pos = pos
+            if pos != -1 and pos < next_pos:
+                next_pos = pos
 
-        block = text[start:next_store_pos]
+        block = text[start:next_pos]
 
         for line in block.splitlines():
 
-            match = re.match(r'^([A-Z]{3}\d{5})', line.strip())
+            match = re.match(
+                r"^([A-Z]{3}\d{5})",
+                line.strip()
+            )
 
             if match:
                 ntids.add(match.group(1))
 
     return ntids
 
-def process():
+if st.button("Generate Report"):
 
-    if not raw_file or not report_file:
-        messagebox.showerror("Error", "Dono files select karo")
-        return
+    if raw_file is None or report_file is None:
+        st.error("Please upload both files.")
+        st.stop()
 
-    try:
+    text = raw_file.read().decode(
+        "utf-8",
+        errors="ignore"
+    )
 
-        with open(raw_file, "r", encoding="utf-8", errors="ignore") as f:
-            text = f.read()
+    ntids = extract_ntids(text)
 
-        ntids = extract_ntids(text)
+    wb = load_workbook(report_file)
 
-        wb = load_workbook(report_file)
+    updated_count = 0
 
-        for ws in wb.worksheets:
+    for ws in wb.worksheets:
 
-            for row in range(1, ws.max_row + 1):
+        for row in range(1, ws.max_row + 1):
 
-                ntid = ws.cell(row=row, column=3).value
+            ntid = ws.cell(
+                row=row,
+                column=3
+            ).value
 
-                if ntid in ntids:
+            if ntid in ntids:
 
-                    for col in range(5, 11):
-                        ws.cell(row=row, column=col).value = "Yes"
+                for col in range(5, 11):
+                    ws.cell(
+                        row=row,
+                        column=col
+                    ).value = "Yes"
 
-        output = report_file.replace(".xlsx", "_UPDATED.xlsx")
+                updated_count += 1
 
-        wb.save(output)
+    output = BytesIO()
 
-        messagebox.showinfo(
-            "Done",
-            f"Report Ready!\n\nSaved:\n{output}"
-        )
+    wb.save(output)
 
-    except Exception as e:
-        messagebox.showerror("Error", str(e))
+    output.seek(0)
 
-root = tk.Tk()
-root.title("Store Employee YES Generator")
-root.geometry("700x300")
+    st.success(
+        f"{updated_count} employees updated successfully."
+    )
 
-tk.Button(
-    root,
-    text="Select Raw Data",
-    command=select_raw,
-    width=30
-).pack(pady=10)
-
-raw_label = tk.Label(root, text="No Raw Data Selected")
-raw_label.pack()
-
-tk.Button(
-    root,
-    text="Select EMP Report",
-    command=select_report,
-    width=30
-).pack(pady=10)
-
-report_label = tk.Label(root, text="No Report Selected")
-report_label.pack()
-
-tk.Button(
-    root,
-    text="Generate Report",
-    command=process,
-    width=30,
-    height=2
-).pack(pady=20)
-
-root.mainloop()
+    st.download_button(
+        label="Download Updated Report",
+        data=output,
+        file_name="EMP_Report_UPDATED.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
