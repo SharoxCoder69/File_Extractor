@@ -1,144 +1,143 @@
-import streamlit as st
-import pandas as pd
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from openpyxl import load_workbook
 import re
-from PIL import Image
 
-# ---------------- PAGE ----------------
-st.set_page_config(page_title="TWG SmartOps PRO", layout="wide")
+STORES = [
+    "TWGSC18 -CEDAR LANE SC",
+    "TWGSC20 -EASLEY SC",
+    "TWGSC21 -MONITOR SC",
+    "TWGSC22 -SHOCKLEY SC",
+    "TWGSC31 -LAURENS SC",
+    "TWGSC66 -ANDERSON MAIN ST SC",
+    "TWGVA24 -HIGH ST VA",
+    "TWGVA25 -GEORGE W. VA",
+    "TWGVA26 -KECOUGHTAN VA",
+    "TWGVA27 -NORFOLK VA",
+    "TWGVA28 -ABERDEEN VA",
+    "TWGVA40 -VIRGINIA BEACH VA",
+    "TWGVA58 -WEST MERCURY BLVD VA",
+    "TWGVA59 -BATTLEFIELD BLVD VA",
+    "TWGVA60 -GREAT NECK RD VA",
+    "TWGVA61 -WARWICK BLVD VA",
+    "TWGVA62 - NEWMARKET DR VA",
+    "TWGVA63 -J CLYDE MORRIS VA",
+]
 
-# ---------------- UPLOAD LOGO ----------------
-uploaded_logo = st.file_uploader("Upload your logo (PNG, JPG, GIF)", type=["png", "jpg", "jpeg", "gif"])
+raw_file = ""
+report_file = ""
 
-if uploaded_logo is not None:
-    try:
-        image = Image.open(uploaded_logo)
-        st.image(image, width=300)
-    except Exception as e:
-        st.error(f"Error loading image: {e}")
-else:
-    st.info("Please upload a logo to display here.")
-
-# ---------------- UI ----------------
-st.title("🚀 TWG SmartOps PRO SYSTEM")
-st.markdown("## 📥 Paste Raw Data")
-
-# ---------------- STORE DATABASE ----------------
-STORE_DATA = {
-    "HICKORY": {"id": "TWGNC52", "dm": "Angie"},
-    "BRAGG BLVD": {"id": "TWGNC56", "dm": "Ollivanza"},
-    "CANNON": {"id": "TWGNC50", "dm": "Kindi"},
-    "MOORESVILLE": {"id": "TWGNC53", "dm": "Angie"},
-    "ROXIE ST": {"id": "TWGNC51", "dm": "Angie"},
-    "CHERRY T42": {"id": "TWGSC42", "dm": "Kindi"},
-    "SALISBURY": {"id": "TWGNC17", "dm": "Angie"},
-    "LINCOLNTON": {"id": "TWGNC30", "dm": "Kindi"},
-    "GASTONIA": {"id": "TWGNC42", "dm": "Angie"},
-    "BURLINGTON": {"id": "TWGNC13", "dm": "Ollivanza"},
-    "DURHAM": {"id": "TWGNC22", "dm": "Angie"},
-    "RALEIGH": {"id": "TWGNC25", "dm": "Ollivanza"},
-    "CHARLOTTE": {"id": "TWGNC10", "dm": "Kindi"},
-
-    "ASHLAND": {"id": "TWGVA69", "dm": "Mekail"},
-    "HULL STREET": {"id": "TWGVA72", "dm": "Mekail"},
-    "WEST BROAD": {"id": "TWGVA73", "dm": "Mekail"},
-    "VIRGINIA BEACH": {"id": "TWGVA74", "dm": "Mekail"},
-    "HAMPTON": {"id": "TWGVA75", "dm": "Mekail"},
-    "NORFOLK": {"id": "TWGVA76", "dm": "Mekail"},
-
-    "LANCASTER": {"id": "TWGSC29", "dm": "Kindi"},
-    "ROCK HILL": {"id": "TWGSC31", "dm": "Kindi"},
-    "CHARLESTON": {"id": "TWGSC33", "dm": "Kindi"},
-
-    "MILGEN": {"id": "TWGGA34", "dm": "Ollivanza"},
-    "WOODRUFF": {"id": "TWGGA33", "dm": "Ollivanza"},
-    "VICTORY DR": {"id": "TWGGA32", "dm": "Ollivanza"},
-}
-
-# ---------------- ALIASES ----------------
-STORE_ALIASES = {
-    "VA 69 JUNCTION": "ASHLAND",
-    "W FRANKLIN T42": "GASTONIA",
-    "WOODRUFF GA": "WOODRUFF",
-    "MILGEN GA": "MILGEN",
-    "LANCASTER SC": "LANCASTER",
-    "ROXIE STREET": "ROXIE ST",
-}
-
-# ---------------- CLEAN FUNCTION ----------------
-def clean_text(text):
-    text = str(text).upper()
-    text = re.sub(r'\bNC\b|\bVA\b|\bGA\b|\bSC\b', ' ', text)
-    text = re.sub(r'\bSTORE\b|\bSHIFT\b|\bCLOCK\b|\bIN\b|\bOUT\b', ' ', text)
-    text = re.sub(r'\d+', ' ', text)
-    text = re.sub(r'[^A-Z ]', ' ', text)
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
-
-# ---------------- MATCH FUNCTION ----------------
-def match_store(text):
-    text = clean_text(text)
-    # 1. ALIAS CHECK
-    for alias, real_store in STORE_ALIASES.items():
-        if alias in text:
-            return real_store
-
-    best_match = "UNMATCHED"
-    best_score = 0
-
-    for store in STORE_DATA:
-        s = clean_text(store)
-        # 2. DIRECT MATCH
-        if s in text:
-            return store
-        # 3. WORD MATCH
-        score = len(set(text.split()) & set(s.split()))
-        if s.split() and s.split()[0] in text:
-            score += 2
-        if score > best_score:
-            best_score = score
-            best_match = store
-
-    if best_score >= 1:
-        return best_match
-
-    return "UNMATCHED"
-
-# ---------------- INPUT ----------------
-raw_data = st.text_area("Raw Input", height=300)
-
-# ---------------- PROCESS ----------------
-if st.button("🚀 RUN SYSTEM"):
-    lines = [l.strip() for l in raw_data.splitlines() if l.strip()]
-    final = []
-
-    for line in lines:
-        matched = match_store(line)
-
-        if matched in STORE_DATA:
-            sid = STORE_DATA[matched]["id"]
-            dm = STORE_DATA[matched]["dm"]
-        else:
-            sid = ""
-            dm = ""
-
-        final.append({
-            "Input": line,
-            "Store Name": matched,
-            "Store ID": sid,
-            "DM": dm
-        })
-
-    df = pd.DataFrame(final)
-
-    st.success("Processing Completed 🚀")
-    st.metric("Total Records", len(df))
-    st.dataframe(df, use_container_width=True)
-
-    # DOWNLOAD
-    csv = df.to_csv(index=False).encode()
-    st.download_button(
-        "⬇ Download Report",
-        csv,
-        "twg_final_report.csv",
-        "text/csv"
+def select_raw():
+    global raw_file
+    raw_file = filedialog.askopenfilename(
+        title="Select Raw Data File"
     )
+    raw_label.config(text=raw_file)
+
+def select_report():
+    global report_file
+    report_file = filedialog.askopenfilename(
+        title="Select EMP Report File"
+    )
+    report_label.config(text=report_file)
+
+def extract_ntids(text):
+    ntids = set()
+
+    for store in STORES:
+
+        if store not in text:
+            continue
+
+        start = text.find(store)
+
+        next_store_pos = len(text)
+
+        for s in STORES:
+            pos = text.find(s, start + 1)
+
+            if pos != -1 and pos < next_store_pos:
+                next_store_pos = pos
+
+        block = text[start:next_store_pos]
+
+        for line in block.splitlines():
+
+            match = re.match(r'^([A-Z]{3}\d{5})', line.strip())
+
+            if match:
+                ntids.add(match.group(1))
+
+    return ntids
+
+def process():
+
+    if not raw_file or not report_file:
+        messagebox.showerror("Error", "Dono files select karo")
+        return
+
+    try:
+
+        with open(raw_file, "r", encoding="utf-8", errors="ignore") as f:
+            text = f.read()
+
+        ntids = extract_ntids(text)
+
+        wb = load_workbook(report_file)
+
+        for ws in wb.worksheets:
+
+            for row in range(1, ws.max_row + 1):
+
+                ntid = ws.cell(row=row, column=3).value
+
+                if ntid in ntids:
+
+                    for col in range(5, 11):
+                        ws.cell(row=row, column=col).value = "Yes"
+
+        output = report_file.replace(".xlsx", "_UPDATED.xlsx")
+
+        wb.save(output)
+
+        messagebox.showinfo(
+            "Done",
+            f"Report Ready!\n\nSaved:\n{output}"
+        )
+
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+root = tk.Tk()
+root.title("Store Employee YES Generator")
+root.geometry("700x300")
+
+tk.Button(
+    root,
+    text="Select Raw Data",
+    command=select_raw,
+    width=30
+).pack(pady=10)
+
+raw_label = tk.Label(root, text="No Raw Data Selected")
+raw_label.pack()
+
+tk.Button(
+    root,
+    text="Select EMP Report",
+    command=select_report,
+    width=30
+).pack(pady=10)
+
+report_label = tk.Label(root, text="No Report Selected")
+report_label.pack()
+
+tk.Button(
+    root,
+    text="Generate Report",
+    command=process,
+    width=30,
+    height=2
+).pack(pady=20)
+
+root.mainloop()
